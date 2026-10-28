@@ -1,0 +1,27 @@
+.hero { background: var(--ns-ink); color: var(--ns-chalk); }
+.heroIn { max-width: var(--container-max); margin: 0 auto; padding: clamp(56px, 7vw, 112px) clamp(16px, 3vw, 40px); display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-end; justify-content: space-between; }
+.heroText { flex: 1 1 480px; min-width: 0; }
+.heroEyebrow { margin: 0 0 16px; font-size: 12px; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; color: var(--ns-gold); }
+.heroH1 { margin: 0 0 20px; font-family: var(--font-display); font-weight: 400; font-size: clamp(44px, 3.4vw + 32px, 88px); line-height: .96; letter-spacing: -.015em; max-width: 14ch; }
+.heroLead { margin: 0 0 28px; font-size: 18px; line-height: 1.6; color: var(--ns-grey-400); max-width: 56ch; }
+.ctaLight, .ctaGhost { display: inline-flex; align-items: center; justify-content: center; height: 52px; padding: 0 28px; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; border-radius: var(--radius-xs); }
+.ctaLight { background: var(--ns-chalk); color: var(--ns-ink); }
+.ctaLight:hover { color: var(--ns-ink); background: var(--ns-grey-200); }
+.ctaGhost { border: 1px solid var(--ns-grey-500); color: var(--ns-chalk); padding: 0 24px; }
+.ctaGhost:hover { color: var(--ns-gold-light); border-color: var(--ns-gold); }
+.heroBadge { width: min(280px, 70vw); height: auto; display: block; }
+.main { padding-top: 64px; }
+.areas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 1px; background: var(--ui-border); border: 1px solid var(--ui-border); }
+.area { background: var(--ui-surface); padding: 24px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--ui-text); min-height: 180px; transition: background-color var(--dur-fast) var(--ease-standard); }
+.area:hover { background: var(--ui-sunken); color: var(--ui-text); }
+.areaN { font-family: var(--font-display); font-size: 28px; color: var(--ui-accent); }
+.areaT { font-family: var(--font-display); font-weight: 500; font-size: 26px; line-height: 1.15; }
+.areaD { font-size: 14px; line-height: 1.55; color: var(--ui-text-2); }
+.areaCta { margin-top: auto; font-size: 12px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
+.block { margin-top: 64px; }
+.recent { list-style: none; margin: 0; padding: 0; }
+.recent li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--ui-border); flex-wrap: wrap; }
+.recent a { font-size: 16px; overflow-wrap: anywhere; }
+.recent span { font-size: 13px; color: var(--ui-text-2); }
+.info { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 24px; }
+@media (max-width: 480px) { .ctaLight, .ctaGhost { width: 100%; } }

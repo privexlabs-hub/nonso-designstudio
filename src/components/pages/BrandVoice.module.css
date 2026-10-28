@@ -1,0 +1,10 @@
+.main { max-width: 1100px; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 32px 0 8px; padding: 14px 0; border-top: 1px solid var(--ui-strong); border-bottom: 1px solid var(--ui-border); }
+.toc { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 16px 0 40px; }
+.toc a { font-size: 14px; color: var(--ui-text-2); padding: 4px 0; }
+.section { padding: 28px 0; border-top: 1px solid var(--ui-border); scroll-margin-top: 16px; }
+.head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+.h2 { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: clamp(26px, .4vw + 24px, 30px); line-height: 1.15; flex: 1 1 300px; }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.body { margin: 0; font-size: 15px; line-height: 1.7; white-space: pre-wrap; max-width: 78ch; overflow-wrap: break-word; }
+@media (max-width: 600px) { .h2 { flex-basis: 100%; } }

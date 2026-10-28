@@ -1,0 +1,61 @@
+/* Nonso Stitches — colour tokens.
+   CONFIRMED from logo: --ns-ink (logo field, sampled #0B0A08) and --ns-gold (logo metallic midtone, sampled #E0B04F).
+   PROPOSED: all other values (supporting palette). */
+:root{
+/* Brand — primary */
+--ns-ink:#0B0A08;          /* Atelier Ink — logo field. Dark surfaces, primary buttons, headline text on light */
+--ns-ink-2:#17181A;        /* Ink Raised — cards/panels on dark */
+--ns-ink-3:#26282B;        /* Ink Hover — hover state of ink fills */
+--ns-chalk:#F3F4F2;        /* Tailor's Chalk — default page background */
+--ns-paper:#FFFFFF;        /* Paper White — raised surface, input fill */
+/* Brand — accent (sparingly, ≤5%) */
+--ns-gold:#E0B04F;         /* Thread Gold — logo gold. ON DARK ONLY (9.9:1 on ink). Never text on light */
+--ns-gold-light:#F0D080;   /* Gold highlight — sampled logo highlight; hairlines on ink */
+--ns-bronze:#7A5A1E;       /* Bronze — gold's accessible partner on light (5.8:1 on chalk) */
+/* Secondary — textile */
+--ns-indigo:#1F2E4A;       /* Adire Indigo — secondary accent, links-on-hover, focus, info. ≤2% */
+--ns-indigo-2:#2B4A7A;     /* Indigo Mid — focus ring, info text */
+/* Neutrals — cool graphite (no beige/cream) */
+--ns-grey-100:#E9EBEA;    /* Cotton — alt section background */
+--ns-grey-200:#DCDFDF;    /* Muslin — placeholder fill */
+--ns-grey-300:#CDD1D1;    /* Hairline — decorative dividers only (1.4:1) */
+--ns-grey-400:#B9BEC0;    /* Pewter Light — secondary text on ink (9.5:1 on ink-2) */
+--ns-grey-500:#959B9E;    /* Pewter — muted text on ink only (7.3:1). Fails on chalk */
+--ns-grey-600:#7F8588;    /* Field Edge — functional borders (3.4:1 on chalk) */
+--ns-grey-700:#51575B;    /* Graphite — secondary text on light (6.3:1) */
+--ns-grey-900:#15181A;    /* Charcoal — primary text on light (16.2:1) */
+/* Semantic */
+--ns-success:#2F6B4A; --ns-success-bg:#E4EDE3;
+--ns-warning:#8A5A0C; --ns-warning-bg:#F5E9CF;
+--ns-error:#A8213A;   --ns-error-bg:#F6E3E6;
+--ns-info:#2B4A7A;    --ns-info-bg:#E1E6EE;
+--ns-whatsapp:#1F7A4D; /* WhatsApp CTA — darkened brand green, 4.8:1 with chalk text */
+
+/* Semantic aliases */
+--color-text-primary:var(--ns-grey-900);
+--color-text-secondary:var(--ns-grey-700);
+--color-text-accent:var(--ns-bronze);
+--color-text-inverse:var(--ns-chalk);
+--color-text-inverse-secondary:var(--ns-grey-400);
+--color-text-inverse-accent:var(--ns-gold);
+--color-text-link:var(--ns-grey-900);
+--color-text-link-hover:var(--ns-indigo);
+--color-surface-default:var(--ns-chalk);
+--color-surface-raised:var(--ns-paper);
+--color-surface-sunken:var(--ns-grey-100);
+--color-surface-inverse:var(--ns-ink);
+--color-surface-inverse-raised:var(--ns-ink-2);
+--color-surface-placeholder:var(--ns-grey-200);
+--color-border-subtle:var(--ns-grey-300);
+--color-border-default:var(--ns-grey-600);
+--color-border-strong:var(--ns-ink);
+--color-border-inverse:#33363A;
+--color-border-inverse-accent:var(--ns-gold);
+--color-brand-primary:var(--ns-ink);
+--color-brand-secondary:var(--ns-chalk);
+--color-brand-accent:var(--ns-gold);
+--color-brand-accent-on-light:var(--ns-bronze);
+--color-focus-ring:var(--ns-indigo-2);
+--color-focus-ring-inverse:var(--ns-gold);
+--color-overlay:rgba(11,10,8,.64);
+}

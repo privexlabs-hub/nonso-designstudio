@@ -1,0 +1,19 @@
+:root{
+--space-unit:4px;
+--space-0:0;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;--space-16:64px;--space-20:80px;--space-24:96px;--space-32:128px;
+--section-y-desktop:128px;--section-y-tablet:96px;--section-y-mobile:64px;
+--section-y:clamp(64px,5.9vw + 43px,128px);/* @kind spacing */
+/* Layout */
+--bp-mobile:0px;--bp-tablet:768px;--bp-desktop:1200px;--bp-wide:1440px;
+--container-max:1320px;--container-text:720px;--container-narrow:560px;
+--grid-cols-desktop:12;/* @kind other */
+--grid-cols-tablet:8;/* @kind other */
+--grid-cols-mobile:4;/* @kind other */
+--gutter-desktop:24px;--gutter-tablet:20px;--gutter-mobile:16px;
+--margin-desktop:64px;--margin-tablet:40px;--margin-mobile:20px;
+--page-margin:clamp(20px,4vw + 6px,64px);/* @kind spacing */
+--gutter:clamp(16px,.6vw + 14px,24px);/* @kind spacing */
+/* Component sizing */
+--control-h-sm:36px;--control-h-md:44px;--control-h-lg:52px;
+--touch-min:44px;
+}

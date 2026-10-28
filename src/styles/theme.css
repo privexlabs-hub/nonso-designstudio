@@ -1,0 +1,27 @@
+/* Owner direction: no warm bronze/cream accents anywhere. Re-point the retired DS bronze token to Adire Indigo so every DS component follows. */
+:root{--ns-bronze:#1F2E4A;--ns-warning:#2B4A7A;--ns-warning-bg:#E6EAF0}
+/* App UI theme layer. Semantic --ui-* tokens map onto brand tokens (tokens/colors.css).
+   Dark mode also re-points the design-system aliases so DS components follow the theme. */
+:root,html[data-theme="light"]{
+--ui-bg:var(--ns-chalk);--ui-surface:var(--ns-paper);--ui-sunken:var(--ns-grey-100);--ui-place:var(--ns-grey-200);
+--ui-text:var(--ns-grey-900);--ui-text-2:var(--ns-grey-700);--ui-border:var(--ns-grey-300);--ui-border-2:var(--ns-grey-600);--ui-strong:var(--ns-ink);
+--ui-accent:var(--ns-indigo);--ui-inv-bg:var(--ns-ink);--ui-inv-text:var(--ns-chalk);--ui-inv-text-2:var(--ns-grey-400);--ui-inv-accent:var(--ns-gold);
+--ui-canvas:#DCDFDF;--ui-select:var(--ns-indigo-2);--ui-error:var(--ns-error);--ui-success:var(--ns-success);--ui-error-bg:var(--ns-error-bg);--ui-success-bg:var(--ns-success-bg);--ui-info-bg:var(--ns-info-bg);--ui-info:var(--ns-info);--ui-warning:#2B4A7A;--ui-warning-bg:#E6EAF0;
+--color-text-accent:var(--ns-indigo);--color-brand-accent-on-light:var(--ns-indigo);--ns-warning:#2B4A7A;--ns-warning-bg:#E6EAF0;
+color-scheme:light}
+html[data-theme="dark"]{
+--ui-bg:var(--ns-ink);--ui-surface:var(--ns-ink-2);--ui-sunken:#111214;--ui-place:#26282B;
+--ui-text:var(--ns-chalk);--ui-text-2:var(--ns-grey-400);--ui-border:#33363A;--ui-border-2:var(--ns-grey-500);--ui-strong:var(--ns-chalk);
+--ui-accent:var(--ns-gold);--ui-inv-bg:var(--ns-chalk);--ui-inv-text:var(--ns-ink);--ui-inv-text-2:var(--ns-grey-700);--ui-inv-accent:var(--ns-indigo);
+--ui-canvas:#050504;--ui-select:var(--ns-gold);--ui-error:#E4798C;--ui-success:#7FC29C;--ui-error-bg:#2A1418;--ui-success-bg:#142219;--ui-info-bg:#151D2A;--ui-info:#9DB6DD;--ui-warning:#9DB6DD;--ui-warning-bg:#151D2A;
+--color-text-primary:var(--ns-chalk);--color-text-secondary:var(--ns-grey-400);--color-text-accent:var(--ns-gold);--color-text-link:var(--ns-chalk);--color-text-link-hover:var(--ns-gold-light);
+--color-surface-default:var(--ns-ink);--color-surface-raised:var(--ns-ink-2);--color-surface-sunken:#111214;--color-surface-placeholder:#26282B;
+--color-border-subtle:#33363A;--color-border-default:var(--ns-grey-500);--color-border-strong:var(--ns-chalk);--color-focus-ring:var(--ns-gold);
+--focus-ring:0 0 0 2px var(--ns-ink),0 0 0 4px var(--ns-gold);
+color-scheme:dark}
+body{margin:0;background:var(--ui-bg);color:var(--ui-text);font-family:var(--font-sans);transition:background-color var(--dur-base) var(--ease-standard),color var(--dur-base) var(--ease-standard)}
+a{color:var(--ui-text);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:var(--ui-select)}
+button,input,select,textarea{font-family:inherit;color:inherit}
+:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:1ms!important;transition-duration:1ms!important;scroll-behavior:auto!important}}
