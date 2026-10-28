@@ -156,6 +156,7 @@ export const cats: [string, string, string][] = [
   ['social-square','Square posts','1080 × 1080'],['engagement','Engagement posts','1080 × 1080'],['carousel','Carousels','1080 × 1080 · multi-slide'],['stories','Stories & reels','1080 × 1920'],
   ['portrait','Portrait feed posts','1080 × 1350'],['youtube','YouTube thumbnails','1280 × 720'],['banners','Banners & covers','Per platform'],['avatars','Avatars','400 × 400'],
   ['ads','Advertising','Multi-format'],['web','Web sections','Desktop · tablet · mobile'],['editorial','Article banners & editorial','Per channel'],
+  ['platform-posts','Platform posts','Instagram · X · Facebook · TikTok'],
 ];
 // Square posts
 add('social-square','sq-announcement','Announcement','statement','ink',{eyebrow:'Studio news',title:'Bookings for festive fittings are open.',body:'Tell us the date and the garment. We’ll plan your fittings backwards from there.',cta:'Book a fitting'});
@@ -268,6 +269,34 @@ ed('ed-web-hero','Website article hero',[['Article hero',1920,800],['Article her
 ed('ed-blog-promo','Blog promotion (Open Graph)',[['Open Graph',1200,630]],'statement','indigo');
 ed('ed-newsletter-promo','Newsletter promotion',[['Newsletter promo',1200,600],['Newsletter inline',600,300]],'banner','chalk');
 ed('ed-pinterest','Pinterest pin',[['Pinterest 2:3',1000,1500]],'split','chalk');
+// Platform posts — standard feed posts at each platform's recommended sizes (addition to the original inventory)
+const PL: Record<string, [string, number, number][]> = {
+  ig: [['Instagram square',1080,1080],['Instagram portrait 4:5',1080,1350],['Instagram landscape 1.91:1',1080,566]],
+  x: [['X post 16:9',1600,900],['X square',1080,1080],['X portrait 4:5',1080,1350]],
+  fb: [['Facebook square',1080,1080],['Facebook landscape 1.91:1',1200,630],['Facebook portrait 4:5',1080,1350]],
+  tt: [['TikTok post 9:16',1080,1920],['TikTok photo 3:4',1080,1440]],
+};
+const pp = (id: string, name: string, layout: string, palette: PaletteKey, slots: Slots, sizes: [string, number, number][]) => add('platform-posts', id, name, layout, palette, slots, sizes);
+// Instagram
+pp('ig-post-announcement','Instagram post — announcement','statement','ink',{eyebrow:'Studio news',title:'Festive fittings are now booking.',body:'Tell us the garment and the date. We’ll plan your fittings from there.',cta:'Book a fitting'},PL.ig);
+pp('ig-post-tip','Instagram post — fit tip','list','cotton',{eyebrow:'Fit notes',title:'How your trousers should sit',item1:'The waistband stays put without a belt.',item2:'No pulling across the front pockets.',item3:'The hem just touches your shoe.'},PL.ig);
+pp('ig-post-testimonial','Instagram post — client words','quote','chalk',{eyebrow:'Client words',quote:'It fits like it was always mine.',attrib:'[Client first name]',meta:'[Garment] · [Occasion]'},PL.ig);
+pp('ig-post-showcase','Instagram post — garment showcase','imageFull','ink',{eyebrow:'Made to measure',title:'Navy senator, slim leg.',imageLabel:'Photo: finished garment on client, full length'},PL.ig);
+// X / Twitter
+pp('x-post-announcement','X post — announcement','statement','indigo',{eyebrow:'Studio news',title:'Alterations are now by appointment.',body:'Bring in the pieces that almost fit.',cta:'Request an alteration'},PL.x);
+pp('x-post-tip','X post — fit tip','list','paper',{eyebrow:'Fit notes',title:'Three signs your jacket needs a tailor',item1:'The shoulder seam sits past your shoulder.',item2:'The collar lifts away from your neck.',item3:'Buttoning it pulls an X across the front.'},PL.x);
+pp('x-post-quote','X post — brand quote','quote','ink',{eyebrow:'From the studio',quote:'A good fit is something you stop noticing.',attrib:'Nonso Stitches'},PL.x);
+pp('x-post-promo','X post — service promo','split','chalk',{eyebrow:'Made to measure',title:'Clothing made to fit you.',body:'Custom wear for men and women.',cta:'Start an inquiry',imageLabel:'Photo: tailor measuring a client, 3:2'},PL.x);
+// Facebook
+pp('fb-post-announcement','Facebook post — announcement','statement','ink',{eyebrow:'Studio news',title:'Bookings for festive fittings are open.',body:'Message us with the garment and the date you need it by.',cta:'Book a fitting'},PL.fb);
+pp('fb-post-event','Facebook post — event','event','indigo',{eyebrow:'Open fitting day',date:'[Sat 00 Mon]',title:'Come in for measurements and fabric advice.',meta:'[Time] · [Address]',cta:'Reserve a slot'},PL.fb);
+pp('fb-post-testimonial','Facebook post — client words','quote','cotton',{eyebrow:'Client words',quote:'They listened to how I wanted it to feel, not just look.',attrib:'[Client first name]',meta:'[Garment]'},PL.fb);
+pp('fb-post-promo','Facebook post — service promo','split','chalk',{eyebrow:'Alterations',title:'Almost fits? Bring it in.',body:'Hems, waists and sleeves — clothes that fit again.',cta:'Chat on WhatsApp',imageLabel:'Photo: hem being pinned, 4:5'},PL.fb);
+// TikTok
+pp('tt-post-hook','TikTok post — hook','center','ink',{eyebrow:'Fit notes',title:'Your jacket is telling you it doesn’t fit.',cta:'Watch to the end'},PL.tt);
+pp('tt-post-tip','TikTok post — fit tip','list','chalk',{eyebrow:'Measuring at home?',title:'Three rules',item1:'Measure over thin clothing.',item2:'Keep the tape flat, not tight.',item3:'Ask someone else to hold it.'},PL.tt);
+pp('tt-post-before-after','TikTok post — before & after','beforeAfter','ink',{eyebrow:'Alteration',title:'Too big → just right',imageLabel:'Before — same garment, same light',image2Label:'After — same garment, same light'},PL.tt);
+pp('tt-post-cta','TikTok post — call to action','statement','indigo',{eyebrow:'Your turn',title:'A better fit starts with you.',body:'Message us to book a fitting.',cta:'Book a fitting'},PL.tt);
 
 /* ---------- create a working graphic doc ---------- */
 export interface CreateOpts { size?: number; palette?: PaletteKey; slots?: Slots }

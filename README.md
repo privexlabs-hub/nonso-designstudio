@@ -1,6 +1,6 @@
 # Nonso Stitches — Brand Studio
 
-The brand design system, identity playbook, voice reference, asset library, template library (96 templates) and visual editor for Nonso Stitches, built with Next.js (App Router), React and TypeScript. It is a rebuild of the original Claude Design `*.dc.html` studio, with the same features. Everything runs in the browser, edits are saved in `localStorage`, and the site ships as a static export.
+The brand design system, identity playbook, voice reference, asset library, template library (112 templates) and visual editor for Nonso Stitches, built with Next.js (App Router), React and TypeScript. It is a rebuild of the original Claude Design `*.dc.html` studio, with the same features. Everything runs in the browser, edits are saved in `localStorage`, and the site ships as a static export.
 
 ## Run it
 ```bash
@@ -19,7 +19,7 @@ npm test             # Vitest unit tests
 NS_SRC=/path/to/original npm test   # also checks output against the original lib/*.js
 npm run test:e2e     # Playwright against out/ (run `npm run build` first; desktop + Pixel 7)
 ```
-The parity test loads the original `lib/ns-*.js` and compares the output of the TypeScript engine with it. It covers every graphic template at every size and colour variation, and every document and email template. Both the document JSON and the rendered HTML must match.
+The parity test loads the original `lib/ns-*.js` and compares the output of the TypeScript engine with it. It covers every original graphic template at every size and colour variation, and every document and email template. The 16 platform posts are additions, so instead a unit test checks that their layouts stay on the canvas at every size and variation. Both the document JSON and the rendered HTML must match.
 
 ## Pages
 | Route | Purpose |
@@ -29,7 +29,7 @@ The parity test loads the original `lib/ns-*.js` and compares the output of the 
 | `/playbook` | Identity guide in 13 chapters, with correct and incorrect usage |
 | `/voice` | AI-ready brand knowledge: filter by status, copy everything or one section, download .md or .txt |
 | `/assets` | Every asset with a preview; download one file, a group or everything (ZIP) |
-| `/templates` | 96 templates with filter and search, article banner generator, bulk ZIP export, reset |
+| `/templates` | 112 templates in 14 categories, with filter and search, article banner generator, bulk ZIP export, reset |
 | `/editor#t=<template-id>` | Visual editor for graphics and multi-page documents |
 
 ## Architecture
@@ -37,7 +37,7 @@ The parity test loads the original `lib/ns-*.js` and compares the output of the 
   - `core.ts`: brand tokens, storage, clipboard, colour maths.
   - `theme.ts`: light and dark theme. The setting is remembered, follows the system by default and syncs across tabs.
   - `voice.ts`: brand voice and knowledge content.
-  - `graphics.ts`: the layout engine (18 layouts) and 81 graphic templates.
+  - `graphics.ts`: the layout engine (18 layouts) and 97 graphic templates (the original 81, plus 16 platform posts).
   - `docs.ts`: 31 block types, page libraries, and 9 document and 6 email templates.
   - `render.ts`: one HTML renderer for the editor, previews and every export.
   - `export.ts`: PNG, JPEG, SVG, PDF (exact and print), PPTX, DOCX (hand-built OOXML), EPUB 3, HTML, email HTML, Markdown, TXT and ZIP.
@@ -45,6 +45,16 @@ The parity test loads the original `lib/ns-*.js` and compares the output of the 
 - **Export libraries** (html-to-image 1.11.11, JSZip, jsPDF, PptxGenJS) are npm packages, imported dynamically on first use.
 - **Design system**: `src/styles/ds/*.css` holds the design-system tokens and component CSS unchanged. `src/components/ds/` has all 30 components plus the website UI-kit screens (`kit.tsx`) as typed React components (props follow the adherence rules) behind an `index.ts` barrel.
 - **Saved edits**: `localStorage["ns:doc:<id>"]`. A reset keeps the previous version in `ns:trash:<id>`. Template definitions are never changed.
+
+## Platform posts (added)
+Standard feed posts for each platform, at its recommended sizes, in every colour variation:
+
+| Platform | Templates | Sizes |
+|---|---|---|
+| Instagram | announcement, fit tip, client words, garment showcase | 1080×1080 · 1080×1350 · 1080×566 |
+| X / Twitter | announcement, fit tip, brand quote, service promo | 1600×900 · 1080×1080 · 1080×1350 |
+| Facebook | announcement, event, client words, service promo | 1080×1080 · 1200×630 · 1080×1350 |
+| TikTok | hook, fit tip, before & after, call to action | 1080×1920 · 1080×1440 |
 
 ## Mobile and touch
 Tested at 320–1920 px, with no horizontal page scroll at any width.

@@ -16,9 +16,9 @@ test('theme toggle switches, persists across reloads and syncs between tabs', as
   await expect(page.locator('html')).toHaveAttribute('data-theme', start!);
 });
 
-test('studio home: 96 templates, recently edited list comes from the editor', async ({ page }) => {
+test('studio home: 112 templates, recently edited list comes from the editor', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText(/^96 templates — /)).toBeVisible();
+  await expect(page.getByText(/^112 templates — /)).toBeVisible();
   await expect(page.getByText('Nothing yet. Open any template')).toBeVisible();
   await page.goto('/editor/#t=sq-testimonial'); await expect(page.getByText('Saved in this browser')).toBeVisible();
   await page.goto('/');
@@ -93,7 +93,7 @@ test('assets: per-file download, copy path, group ZIP and all-assets ZIP', async
 
 test('templates: filter, search, bulk export ZIP, single download, banner generator', async ({ page }) => {
   await page.goto('/templates/');
-  await expect(page.locator('article')).toHaveCount(96);
+  await expect(page.locator('article')).toHaveCount(112);
   await page.getByRole('button', { name: /^Avatars/ }).click();
   await expect(page.locator('article')).toHaveCount(6);
   await page.getByRole('button', { name: /^All/ }).click();
@@ -160,4 +160,17 @@ test('design system: website kit navigates, validates the inquiry and confirms',
   await kit.getByRole('button', { name: 'Back to home' }).click();
   await expect(kit.getByRole('heading', { name: 'Made to fit you.' })).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test('templates: platform posts for Instagram, X, Facebook and TikTok open at platform sizes', async ({ page }) => {
+  await page.goto('/templates/');
+  await page.getByRole('button', { name: /^Platform posts/ }).click();
+  await expect(page.locator('article')).toHaveCount(16);
+  for (const [id, crumb] of [['ig-post-tip', '1080 × 1080'], ['x-post-promo', '1600 × 900'], ['fb-post-event', '1080 × 1080'], ['tt-post-hook', '1080 × 1920']]) {
+    await page.goto('/editor/#t=' + id);
+    await expect(page.getByText('Graphic · Platform posts · ' + crumb)).toBeVisible();
+  }
+  await page.getByRole('tab', { name: 'Document' }).click();
+  await page.getByLabel('Size').selectOption({ label: 'TikTok photo 3:4 — 1080 × 1440' });
+  await expect(page.getByText('Graphic · Platform posts · 1080 × 1440')).toBeVisible();
 });

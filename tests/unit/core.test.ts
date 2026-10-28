@@ -25,13 +25,14 @@ describe('core helpers', () => {
 });
 
 describe('template catalogue', () => {
-  it('has 81 graphics, 9 documents and 6 emails in 13 categories', () => {
-    expect(G.templates).toHaveLength(81);
+  it('has 97 graphics (81 original + 16 platform posts), 9 documents and 6 emails in 14 categories', () => {
+    expect(G.templates).toHaveLength(97);
+    expect(G.templates.filter(t => t.cat === 'platform-posts')).toHaveLength(16);
     expect(D.templates.filter(t => t.cat === 'documents')).toHaveLength(9);
     expect(D.templates.filter(t => t.cat === 'email')).toHaveLength(6);
-    expect(catalog).toHaveLength(96);
-    expect(categories).toHaveLength(13);
-    expect(new Set(catalog.map(t => t.id)).size).toBe(96);
+    expect(catalog).toHaveLength(112);
+    expect(categories).toHaveLength(14);
+    expect(new Set(catalog.map(t => t.id)).size).toBe(112);
   });
   it('has 18 user-selectable layouts and 31 block types (the original README says 30; its code defines 31)', () => {
     expect(G.layoutChoices).toHaveLength(18);
@@ -69,5 +70,29 @@ describe('export naming', () => {
     const d = D.create(D.templates.find(t => t.id === 'em-welcome')!);
     expect(fname(d, null, 'md')).toBe('welcome-email.md');
     expect(isPerPage('svg')).toBe(true); expect(isPerPage('pdf')).toBe(false);
+  });
+});
+
+describe('platform posts', () => {
+  const sizes = (id: string) => G.templates.find(t => t.id === id)!.sizes.map(s => s[1] + 'x' + s[2]);
+  it('uses each platform’s standard feed sizes', () => {
+    expect(sizes('ig-post-announcement')).toEqual(['1080x1080', '1080x1350', '1080x566']);
+    expect(sizes('x-post-tip')).toEqual(['1600x900', '1080x1080', '1080x1350']);
+    expect(sizes('fb-post-event')).toEqual(['1080x1080', '1200x630', '1080x1350']);
+    expect(sizes('tt-post-hook')).toEqual(['1080x1920', '1080x1440']);
+  });
+  it('lays out every platform post at every size and variation without empty or off-canvas text', () => {
+    for (const t of G.templates.filter(t => t.cat === 'platform-posts')) {
+      t.sizes.forEach((_, size) => t.variants.forEach(palette => {
+        const d = G.create(t, { size, palette });
+        const texts = d.pages[0].els!.filter(e => e.t === 'text' && e.id !== 'brandname');
+        expect(texts.length, t.id).toBeGreaterThan(0);
+        for (const e of texts) {
+          expect(e.text, `${t.id} ${e.id}`).toBeTruthy();
+          expect(e.x, `${t.id} ${e.id} x`).toBeGreaterThanOrEqual(0);
+          expect(e.y + e.h, `${t.id} ${e.id} bottom @${d.W}x${d.H}`).toBeLessThanOrEqual(d.H + 1);
+        }
+      }));
+    }
   });
 });

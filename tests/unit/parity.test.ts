@@ -31,13 +31,15 @@ describe.skipIf(!SRC)('parity with original JS', () => {
   });
 
   it('has the same template registries', () => {
-    expect(G.templates.map(t => t.id)).toEqual(NS.G.templates.map(t => t.id));
+    const orig = NS.G.templates.map(t => t.id);
+    expect(G.templates.slice(0, orig.length).map(t => t.id)).toEqual(orig);
+    expect(G.templates.slice(orig.length).every(t => t.cat === 'platform-posts')).toBe(true);
     expect(D.templates.map(t => t.id)).toEqual(NS.D.templates.map(t => t.id));
     expect(G.layoutChoices).toEqual(NS.G.layoutChoices);
   });
 
   it('creates identical graphic docs and HTML for every template, size and variation', () => {
-    for (const t of G.templates) {
+    for (const t of G.templates.filter(t => t.cat !== 'platform-posts')) {
       for (let size = 0; size < t.sizes.length; size++) {
         for (const palette of t.variants) {
           const a = G.create(t, { size, palette }) as AnyDoc;
@@ -59,7 +61,7 @@ describe.skipIf(!SRC)('parity with original JS', () => {
   });
 
   it('relayouts identically across sizes', () => {
-    for (const t of G.templates.filter(t => t.sizes.length > 1)) {
+    for (const t of G.templates.filter(t => t.sizes.length > 1 && t.cat !== 'platform-posts')) {
       const a = G.create(t), b = NS.G.create(NS.G.templates.find(x => x.id === t.id)!);
       const [, W, H] = t.sizes[1];
       expect(norm(JSON.stringify(G.relayout(a, W, H, 'chalk')))).toBe(norm(JSON.stringify(NS.G.relayout(b, W, H, 'chalk'))));
@@ -67,7 +69,7 @@ describe.skipIf(!SRC)('parity with original JS', () => {
   });
 
   it('produces identical Markdown, plain text and email HTML for every template', () => {
-    for (const t of [...G.templates, ...D.templates]) {
+    for (const t of [...G.templates.filter(t => t.cat !== 'platform-posts'), ...D.templates]) {
       const graphic = 'sizes' in t;
       const a = (graphic ? G.create(t) : D.create(t)) as AnyDoc;
       const src = graphic ? NS.G.templates.find(x => x.id === t.id)! : NS.D.templates.find(x => x.id === t.id)!;
