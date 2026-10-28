@@ -16,9 +16,9 @@ test('theme toggle switches, persists across reloads and syncs between tabs', as
   await expect(page.locator('html')).toHaveAttribute('data-theme', start!);
 });
 
-test('studio home: 112 templates, recently edited list comes from the editor', async ({ page }) => {
+test('studio home: 155 templates, recently edited list comes from the editor', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText(/^112 templates — /)).toBeVisible();
+  await expect(page.getByText(/^155 templates — /)).toBeVisible();
   await expect(page.getByText('Nothing yet. Open any template')).toBeVisible();
   await page.goto('/editor/#t=sq-testimonial'); await expect(page.getByText('Saved in this browser')).toBeVisible();
   await page.goto('/');
@@ -93,7 +93,7 @@ test('assets: per-file download, copy path, group ZIP and all-assets ZIP', async
 
 test('templates: filter, search, bulk export ZIP, single download, banner generator', async ({ page }) => {
   await page.goto('/templates/');
-  await expect(page.locator('article')).toHaveCount(112);
+  await expect(page.locator('article')).toHaveCount(155);
   await page.getByRole('button', { name: /^Avatars/ }).click();
   await expect(page.locator('article')).toHaveCount(6);
   await page.getByRole('button', { name: /^All/ }).click();
@@ -173,4 +173,22 @@ test('templates: platform posts for Instagram, X, Facebook and TikTok open at pl
   await page.getByRole('tab', { name: 'Document' }).click();
   await page.getByLabel('Size').selectOption({ label: 'TikTok photo 3:4 — 1080 × 1440' });
   await expect(page.getByText('Graphic · Platform posts · 1080 × 1440')).toBeVisible();
+});
+
+test('templates: happy new month and celebrations, searchable and editable at every greeting size', async ({ page }) => {
+  await page.goto('/templates/');
+  await page.getByRole('button', { name: /^Happy new month/ }).click();
+  await expect(page.locator('article')).toHaveCount(12);
+  await page.getByRole('button', { name: /^Celebrations & observances/ }).click();
+  await expect(page.locator('article')).toHaveCount(31);
+  await page.getByRole('button', { name: /^All/ }).click();
+  await page.getByRole('searchbox', { name: 'Search templates' }).fill('eid');
+  await expect(page.locator('article')).toHaveCount(3);
+  for (const id of ['cel-christmas', 'cel-eid-al-fitr']) {
+    await page.goto('/editor/#t=' + id);
+    await expect(page.getByText('Graphic · Celebrations & observances · 1080 × 1080')).toBeVisible();
+    await page.getByRole('tab', { name: 'Document' }).click();
+    await page.getByLabel('Size').selectOption({ label: 'Story 9:16 — 1080 × 1920' });
+    await expect(page.getByText('Graphic · Celebrations & observances · 1080 × 1920')).toBeVisible();
+  }
 });

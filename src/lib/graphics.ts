@@ -149,6 +149,7 @@ const SZ: Record<string, [string, number, number][]> = {
   sq:[['Square post',1080,1080]], st:[['Story / reel',1080,1920]], pt:[['Portrait feed',1080,1350]], yt:[['YouTube thumbnail',1280,720]], av:[['Avatar',400,400],['Avatar @2x',800,800]],
   ad:[['Square',1080,1080],['Landscape 1.91:1',1200,628],['Story 9:16',1080,1920],['Medium rectangle',300,250],['Leaderboard',728,90],['Skyscraper',160,600],['Mobile banner',320,50],['Portrait 4:5',1080,1350]],
   web:[['Desktop',1440,900],['Tablet',834,1112],['Mobile',390,844]],
+  greet:[['Square',1080,1080],['Portrait 4:5',1080,1350],['Story 9:16',1080,1920],['Landscape 1.91:1',1200,630]],
 };
 export const templates: GraphicTemplate[] = []; const T = templates;
 const add = (cat: string, id: string, name: string, layout: string, palette: PaletteKey, slots: Slots, sizes?: [string, number, number][], extra?: Partial<GraphicTemplate>) => T.push(Object.assign({id, cat, name, layout, palette, slots, sizes: sizes || SZ.sq, variants:['ink','chalk','cotton','indigo','paper']}, extra||{}));
@@ -157,6 +158,7 @@ export const cats: [string, string, string][] = [
   ['portrait','Portrait feed posts','1080 × 1350'],['youtube','YouTube thumbnails','1280 × 720'],['banners','Banners & covers','Per platform'],['avatars','Avatars','400 × 400'],
   ['ads','Advertising','Multi-format'],['web','Web sections','Desktop · tablet · mobile'],['editorial','Article banners & editorial','Per channel'],
   ['platform-posts','Platform posts','Instagram · X · Facebook · TikTok'],
+  ['new-month','Happy new month','12 months · 4 sizes'],['celebrations','Celebrations & observances','Religious, national & international · 4 sizes'],
 ];
 // Square posts
 add('social-square','sq-announcement','Announcement','statement','ink',{eyebrow:'Studio news',title:'Bookings for festive fittings are open.',body:'Tell us the date and the garment. We’ll plan your fittings backwards from there.',cta:'Book a fitting'});
@@ -297,6 +299,64 @@ pp('tt-post-hook','TikTok post — hook','center','ink',{eyebrow:'Fit notes',tit
 pp('tt-post-tip','TikTok post — fit tip','list','chalk',{eyebrow:'Measuring at home?',title:'Three rules',item1:'Measure over thin clothing.',item2:'Keep the tape flat, not tight.',item3:'Ask someone else to hold it.'},PL.tt);
 pp('tt-post-before-after','TikTok post — before & after','beforeAfter','ink',{eyebrow:'Alteration',title:'Too big → just right',imageLabel:'Before — same garment, same light',image2Label:'After — same garment, same light'},PL.tt);
 pp('tt-post-cta','TikTok post — call to action','statement','indigo',{eyebrow:'Your turn',title:'A better fit starts with you.',body:'Message us to book a fitting.',cta:'Book a fitting'},PL.tt);
+
+// Greetings (addition to the original inventory). Rules: greeting-led, no emoji, no prices or moving dates;
+// solemn and religious observances carry no sales call to action; brand palettes only (gold appears on ink/indigo).
+const gr = (cat: string, id: string, name: string, layout: string, palette: PaletteKey, slots: Slots) => add(cat, id, name, layout, palette, slots, SZ.greet);
+// Happy new month
+([
+  ['jan','January','center','ink','A new year of clothes that fit the way you live.'],
+  ['feb','February','statement','chalk','Made-to-measure for every date on the calendar.'],
+  ['mar','March','logoCenter','indigo','Fresh fits for a fresh season.'],
+  ['apr','April','center','cotton','Time to plan your Easter and occasion outfits.'],
+  ['may','May','statement','ink','Pieces made to move with you, all month.'],
+  ['jun','June','logoCenter','chalk','Halfway through the year — still made to fit.'],
+  ['jul','July','center','indigo','Bring in the pieces that almost fit.'],
+  ['aug','August','statement','cotton','Light fabrics, clean lines, a better fit.'],
+  ['sep','September','logoCenter','ink','A good season to refresh your workwear.'],
+  ['oct','October','center','chalk','Start your festive fittings early.'],
+  ['nov','November','statement','indigo','Book your fittings before the festive rush.'],
+  ['dec','December','logoCenter','ink','Dressed for every celebration this month.'],
+] as [string, string, string, PaletteKey, string][]).forEach(([k, m, layout, pal, body]) =>
+  gr('new-month', 'nm-' + k, 'Happy new month — ' + m, layout, pal, layout === 'logoCenter' ? { title: 'Happy new month, ' + m + '.', body: 'Nonso Stitches' } : { eyebrow: 'Happy new month', title: 'Welcome, ' + m + '.', body }));
+// Christian
+gr('celebrations','cel-christmas-eve','Christmas Eve','center','indigo',{eyebrow:'Christmas Eve',title:'All set for tomorrow.',body:'Warm wishes to you and your family tonight.'});
+gr('celebrations','cel-christmas','Merry Christmas','statement','ink',{eyebrow:'Season’s greetings',title:'Merry Christmas.',body:'Thank you for letting us be part of your year.',cta:'Book your festive fitting'});
+gr('celebrations','cel-boxing-day','Boxing Day','center','chalk',{eyebrow:'Boxing Day',title:'Rest, visit, celebrate.',body:'Wishing you a relaxed Boxing Day.'});
+gr('celebrations','cel-palm-sunday','Palm Sunday','logoCenter','paper',{title:'Blessed Palm Sunday.',body:'From all of us at Nonso Stitches'});
+gr('celebrations','cel-good-friday','Good Friday','logoCenter','ink',{title:'A peaceful Good Friday.',body:'Thinking of you this Easter weekend'});
+gr('celebrations','cel-easter','Happy Easter','statement','chalk',{eyebrow:'Easter greetings',title:'Happy Easter.',body:'Wishing you joy and new beginnings.',cta:'Plan your Easter outfit'});
+gr('celebrations','cel-easter-monday','Easter Monday','center','cotton',{eyebrow:'Easter Monday',title:'Enjoy the long weekend.',body:'Rest well and celebrate with family.'});
+// Muslim
+gr('celebrations','cel-ramadan','Ramadan Kareem','logoCenter','indigo',{title:'Ramadan Kareem.',body:'Wishing you a blessed and peaceful month'});
+gr('celebrations','cel-eid-al-fitr','Eid al-Fitr — Eid Mubarak','statement','ink',{eyebrow:'Eid Mubarak · Barka da Sallah',title:'Eid Mubarak.',body:'Wishing you and your family joy and peace.',cta:'Book your Sallah fitting'});
+gr('celebrations','cel-eid-al-adha','Eid al-Adha — Sallah','center','indigo',{eyebrow:'Eid al-Adha · Barka da Sallah',title:'Eid Mubarak.',body:'May your celebrations be blessed and joyful.'});
+gr('celebrations','cel-hijri-new-year','Islamic New Year','logoCenter','indigo',{title:'Happy Hijri New Year.',body:'Peace and blessings for the year ahead'});
+gr('celebrations','cel-mawlid','Eid-el-Maulud','logoCenter','ink',{title:'Happy Eid-el-Maulud.',body:'Wishing you peace and blessings'});
+// New Year
+gr('celebrations','cel-new-years-eve','New Year’s Eve','center','ink',{eyebrow:'New Year’s Eve',title:'Thank you for this year.',body:'See you in [Year].'});
+gr('celebrations','cel-new-year','Happy New Year','statement','ink',{eyebrow:'Happy New Year',title:'Welcome, [Year].',body:'A new year of clothes made to fit you.',cta:'Book a fitting'});
+// Nigerian national
+gr('celebrations','cel-workers-day','Workers’ Day','center','chalk',{eyebrow:'Workers’ Day · 1 May',title:'To everyone who works with their hands.',body:'Happy Workers’ Day from our cutting table.'});
+gr('celebrations','cel-childrens-day','Children’s Day','center','cotton',{eyebrow:'Children’s Day · 27 May',title:'Happy Children’s Day.',body:'To the little ones who grow out of everything.'});
+gr('celebrations','cel-democracy-day','Democracy Day','logoCenter','chalk',{title:'Happy Democracy Day.',body:'12 June'});
+gr('celebrations','cel-independence-day','Independence Day','statement','ink',{eyebrow:'Independence Day · 1 October',title:'Happy Independence Day.',body:'Proud to make clothes for Nigerians, in Nigeria.'});
+// Cultural
+gr('celebrations','cel-new-yam','New Yam Festival (Iri Ji)','statement','ink',{eyebrow:'Iri Ji · New Yam Festival',title:'Happy New Yam Festival.',body:'Wishing you a rich harvest and a joyful celebration.',cta:'Book your festival fitting'});
+gr('celebrations','cel-valentines','Valentine’s Day','center','indigo',{eyebrow:'Valentine’s Day',title:'Dressed for the one you love.',body:'Happy Valentine’s Day.'});
+// International
+gr('celebrations','cel-womens-day','International Women’s Day','center','chalk',{eyebrow:'International Women’s Day · 8 March',title:'To the women who shape everything.',body:'Happy International Women’s Day.'});
+gr('celebrations','cel-mothers-day','Mother’s Day','statement','paper',{eyebrow:'Mother’s Day',title:'Happy Mother’s Day.',body:'To every mother who made something with love.',cta:'Gift a fitting'});
+gr('celebrations','cel-fathers-day','Father’s Day','statement','ink',{eyebrow:'Father’s Day',title:'Happy Father’s Day.',body:'To the men who taught us how to wear it well.',cta:'Gift a fitting'});
+gr('celebrations','cel-mens-day','International Men’s Day','center','cotton',{eyebrow:'International Men’s Day · 19 November',title:'Here’s to the men in our lives.',body:'Happy International Men’s Day.'});
+gr('celebrations','cel-tailors-day','Tailors’ Day','statement','ink',{eyebrow:'Tailors’ Day · 28 February',title:'Measure twice, cut once.',body:'Celebrating every tailor who makes clothes fit.'});
+gr('celebrations','cel-environment-day','World Environment Day','center','cotton',{eyebrow:'World Environment Day · 5 June',title:'Mend it before you replace it.',body:'Alterations keep good clothes in use for longer.'});
+gr('celebrations','cel-mental-health-day','World Mental Health Day','logoCenter','paper',{title:'Look after yourself today.',body:'World Mental Health Day · 10 October'});
+// Global
+gr('celebrations','cel-diwali','Diwali','logoCenter','ink',{title:'Happy Diwali.',body:'Wishing you light, joy and peace'});
+gr('celebrations','cel-hanukkah','Hanukkah','logoCenter','indigo',{title:'Happy Hanukkah.',body:'Wishing you light and peace'});
+gr('celebrations','cel-lunar-new-year','Lunar New Year','center','ink',{eyebrow:'Lunar New Year',title:'Happy Lunar New Year.',body:'Wishing you good fortune in the year ahead.'});
+gr('celebrations','cel-thanksgiving','Thanksgiving','center','chalk',{eyebrow:'Thanksgiving',title:'Thank you for trusting us.',body:'Grateful for every client and every fitting.'});
 
 /* ---------- create a working graphic doc ---------- */
 export interface CreateOpts { size?: number; palette?: PaletteKey; slots?: Slots }

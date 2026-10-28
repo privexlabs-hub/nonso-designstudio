@@ -125,7 +125,8 @@ test('carousel pages: add, duplicate, reorder by drag and buttons, delete, count
   await expect(pages).toHaveCount(6);
   await pages.nth(4).getByRole('button', { name: /Go to page 5/ }).click();
   await expect(page.getByText('Page 5 of 6')).toBeVisible();
-  d = await saved(page, 'car-how-it-works'); expect(d.pages[0].els.find((e: { id: string }) => e.id === 'counter').text).toBe('01 / 06');
+  /* edits autosave after a 400 ms debounce — poll storage instead of reading it once */
+  await expect.poll(async () => (await saved(page, 'car-how-it-works')).pages[0].els.find((e: { id: string }) => e.id === 'counter').text).toBe('01 / 06');
 });
 
 test('document: blocks, inline edit, page settings, numbering, overflow to new page', async ({ page }) => {

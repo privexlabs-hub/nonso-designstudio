@@ -25,14 +25,16 @@ describe('core helpers', () => {
 });
 
 describe('template catalogue', () => {
-  it('has 97 graphics (81 original + 16 platform posts), 9 documents and 6 emails in 14 categories', () => {
-    expect(G.templates).toHaveLength(97);
+  it('has 140 graphics (81 original + 16 platform posts + 12 new-month + 31 celebrations), 9 documents and 6 emails in 16 categories', () => {
+    expect(G.templates).toHaveLength(140);
     expect(G.templates.filter(t => t.cat === 'platform-posts')).toHaveLength(16);
+    expect(G.templates.filter(t => t.cat === 'new-month')).toHaveLength(12);
+    expect(G.templates.filter(t => t.cat === 'celebrations')).toHaveLength(31);
     expect(D.templates.filter(t => t.cat === 'documents')).toHaveLength(9);
     expect(D.templates.filter(t => t.cat === 'email')).toHaveLength(6);
-    expect(catalog).toHaveLength(112);
-    expect(categories).toHaveLength(14);
-    expect(new Set(catalog.map(t => t.id)).size).toBe(112);
+    expect(catalog).toHaveLength(155);
+    expect(categories).toHaveLength(16);
+    expect(new Set(catalog.map(t => t.id)).size).toBe(155);
   });
   it('has 18 user-selectable layouts and 31 block types (the original README says 30; its code defines 31)', () => {
     expect(G.layoutChoices).toHaveLength(18);
@@ -81,8 +83,8 @@ describe('platform posts', () => {
     expect(sizes('fb-post-event')).toEqual(['1080x1080', '1200x630', '1080x1350']);
     expect(sizes('tt-post-hook')).toEqual(['1080x1920', '1080x1440']);
   });
-  it('lays out every platform post at every size and variation without empty or off-canvas text', () => {
-    for (const t of G.templates.filter(t => t.cat === 'platform-posts')) {
+  it('lays out every added template at every size and variation without empty or off-canvas text', () => {
+    for (const t of G.templates.filter(t => ['platform-posts', 'new-month', 'celebrations'].includes(t.cat))) {
       t.sizes.forEach((_, size) => t.variants.forEach(palette => {
         const d = G.create(t, { size, palette });
         const texts = d.pages[0].els!.filter(e => e.t === 'text' && e.id !== 'brandname');
@@ -94,5 +96,23 @@ describe('platform posts', () => {
         }
       }));
     }
+  });
+});
+
+describe('greetings', () => {
+  const greet = G.templates.filter(t => t.cat === 'new-month' || t.cat === 'celebrations');
+  it('come in square, portrait, story and landscape', () => {
+    for (const t of greet) expect(t.sizes.map(s => s[1] + 'x' + s[2]), t.id).toEqual(['1080x1080', '1080x1350', '1080x1920', '1200x630']);
+  });
+  it('cover all twelve months and the major Christian, Muslim, Nigerian and global occasions', () => {
+    expect(greet.filter(t => t.cat === 'new-month').map(t => t.name.split('— ')[1])).toEqual(['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']);
+    for (const id of ['cel-christmas', 'cel-easter', 'cel-good-friday', 'cel-ramadan', 'cel-eid-al-fitr', 'cel-eid-al-adha', 'cel-hijri-new-year', 'cel-mawlid', 'cel-new-year', 'cel-independence-day', 'cel-democracy-day', 'cel-new-yam', 'cel-diwali', 'cel-hanukkah', 'cel-lunar-new-year'])
+      expect(G.templates.some(t => t.id === id), id).toBe(true);
+  });
+  it('contain no emoji and keep religious observances free of sales calls to action', () => {
+    const emoji = /\p{Extended_Pictographic}/u;
+    for (const t of greet) expect(emoji.test(JSON.stringify(t.slots)), t.id).toBe(false);
+    for (const id of ['cel-good-friday', 'cel-palm-sunday', 'cel-ramadan', 'cel-hijri-new-year', 'cel-mawlid', 'cel-eid-al-adha', 'cel-democracy-day', 'cel-diwali', 'cel-hanukkah', 'cel-mental-health-day'])
+      expect(G.templates.find(t => t.id === id)!.slots.cta, id).toBeUndefined();
   });
 });

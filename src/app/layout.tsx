@@ -24,7 +24,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
-      <body>{children}</body>
+      {/* browser extensions (e.g. ColorZilla adds cz-shortcut-listen) write attributes onto <body> before hydration */}
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }
