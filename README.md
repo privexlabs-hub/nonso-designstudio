@@ -25,7 +25,7 @@ The parity test loads the original `lib/ns-*.js` and compares the output of the 
 | Route | Purpose |
 |---|---|
 | `/` | Studio home, area cards, recently edited (`ns:index`) |
-| `/design-system` | 12 sections; click any value to copy it; live design-system components, slide and UI-kit previews |
+| `/design-system` | 12 sections; click any value to copy it; live design-system components, slide and UI-kit previews, and the interactive website kit (Home, Services, four-step Inquiry) |
 | `/playbook` | Identity guide in 13 chapters, with correct and incorrect usage |
 | `/voice` | AI-ready brand knowledge: filter by status, copy everything or one section, download .md or .txt |
 | `/assets` | Every asset with a preview; download one file, a group or everything (ZIP) |
@@ -43,7 +43,7 @@ The parity test loads the original `lib/ns-*.js` and compares the output of the 
   - `export.ts`: PNG, JPEG, SVG, PDF (exact and print), PPTX, DOCX (hand-built OOXML), EPUB 3, HTML, email HTML, Markdown, TXT and ZIP.
   - `catalog.ts`: the unified list of templates.
 - **Export libraries** (html-to-image 1.11.11, JSZip, jsPDF, PptxGenJS) are npm packages, imported dynamically on first use.
-- **Design system**: `src/styles/ds/*.css` holds the design-system tokens and component CSS unchanged. `src/components/ds/` has all 30 components as typed React components (props follow the adherence rules) behind an `index.ts` barrel.
+- **Design system**: `src/styles/ds/*.css` holds the design-system tokens and component CSS unchanged. `src/components/ds/` has all 30 components plus the website UI-kit screens (`kit.tsx`) as typed React components (props follow the adherence rules) behind an `index.ts` barrel.
 - **Saved edits**: `localStorage["ns:doc:<id>"]`. A reset keeps the previous version in `ns:trash:<id>`. Template definitions are never changed.
 
 ## Mobile and touch

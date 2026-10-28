@@ -45,7 +45,7 @@ test('design system: copy actions put exact values on the clipboard', async ({ p
   await expect(page.locator('#colour').getByText('9.9:1 · AA')).toBeVisible();
   await expect(page.locator('#colour').getByText(/· Fail/).first()).toBeVisible();
   await expect(page.locator('#slides figure')).toHaveCount(12);
-  await expect(page.locator('#uikits a')).toHaveCount(8);
+  await expect(page.locator('#uikits a[href^="/editor/"]')).toHaveCount(8);
   expect(errors).toEqual([]);
 });
 
@@ -131,4 +131,33 @@ test('templates: edited badge and reset', async ({ page }) => {
   await card.getByRole('button', { name: 'Reset' }).click();
   await expect(card.getByText('Edited')).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem('ns:trash:sq-cta'))).toContain('Edited title');
+});
+
+test('design system: website kit navigates, validates the inquiry and confirms', async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto('/design-system/');
+  const kit = page.locator('.kit');
+  await kit.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Services' }).click();
+  await expect(kit.getByRole('heading', { name: 'From your measurements to the finished piece.' })).toBeVisible();
+  await expect(kit.getByRole('button', { name: 'Do I need to bring my own fabric?' })).toHaveAttribute('aria-expanded', 'true');
+  await kit.getByRole('button', { name: 'Start an inquiry' }).first().click();
+  await expect(kit.getByRole('heading', { name: 'What can we make for you?' })).toBeVisible();
+  await kit.getByText('An alteration', { exact: true }).click();
+  await kit.getByRole('button', { name: 'Continue' }).click();
+  await kit.getByRole('button', { name: 'Continue' }).click();
+  await expect(kit.getByText('Two fields need attention')).toBeVisible();
+  await kit.getByLabel('Full name').fill('Adaeze Okafor');
+  await kit.getByLabel('Phone or WhatsApp').fill('0803 123 4567');
+  await kit.getByRole('button', { name: 'Continue' }).click();
+  await expect(kit.getByRole('heading', { name: 'Your measurements' })).toBeVisible();
+  await kit.getByRole('button', { name: 'How to measure' }).first().click();
+  await expect(page.getByRole('dialog', { name: 'How to measure' })).toBeVisible();
+  await page.getByRole('button', { name: 'Got it' }).click();
+  await kit.getByRole('button', { name: 'Continue' }).click();
+  await expect(kit.getByText('An alteration').last()).toBeVisible();
+  await kit.getByRole('button', { name: 'Send inquiry' }).click();
+  await expect(kit.getByRole('heading', { name: /Thank you, Adaeze/ })).toBeVisible();
+  await kit.getByRole('button', { name: 'Back to home' }).click();
+  await expect(kit.getByRole('heading', { name: 'Made to fit you.' })).toBeVisible();
+  expect(errors).toEqual([]);
 });

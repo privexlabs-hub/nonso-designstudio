@@ -62,3 +62,5 @@
 .kit { display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: var(--ui-text); }
 .kit span { font-size: 14px; font-weight: 500; }
 @media (max-width: 480px) { .demo { padding: 20px; } .spaceRow > span:first-child { width: 96px !important; } }
+.kitFrame { border: 1px solid var(--ui-border); max-height: 900px; overflow: auto; overscroll-behavior: contain; }
+@media (max-width: 899px) { .kitFrame { max-height: 80vh; } }

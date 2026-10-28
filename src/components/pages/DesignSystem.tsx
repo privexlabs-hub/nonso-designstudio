@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { StudioHeader } from '@/components/shell/StudioHeader';
 import { DocsLayout, DocSection } from '@/components/shell/DocsLayout';
 import { FitPreview } from '@/components/shell/FitPreview';
-import { Alert, Badge, Button, Checkbox, Icon, ProgressSteps, ServiceCard, TestimonialCard, TextField } from '@/components/ds';
+import { Alert, Badge, Button, Checkbox, Icon, ProgressSteps, ServiceCard, TestimonialCard, TextField, WebsiteKit } from '@/components/ds';
 import * as core from '@/lib/core';
 import { copy, colorFormats, contrast, verdict, editorHref, version } from '@/lib/core';
 import * as G from '@/lib/graphics';
@@ -301,6 +301,9 @@ export function DesignSystem() {
               <a key={w.id} href={editorHref(w.id)} className={css.kit}><div className="d-preview"><FitPreview w={w.W} h={w.H} html={w.html} /></div><span>{w.name}</span></a>
             ))}
           </div>
+          <h3 className="d-h3">Website screens — interactive</h3>
+          <p className="s-small" style={{ margin: '0 0 16px', maxWidth: '70ch' }}>The design system’s website kit, built entirely from the live components: Home, Services and a four-step inquiry with validation and a measurement guide. Use the header links and buttons to move between screens. Prices, turnaround times and client names are sample content — confirm before publishing.</p>
+          <div className={css.kitFrame}><WebsiteKit /></div>
         </DocSection>
 
         <DocSection id="governance" kicker="12 · Governance" title="Keeping it consistent">

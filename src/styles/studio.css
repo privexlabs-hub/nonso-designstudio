@@ -155,3 +155,15 @@ button.d-tile:hover { color: var(--ui-select); }
 }
 /* keep toasts above a bottom-docked toolbar (template bulk bar, editor tabs) on phones */
 @media (max-width: 699px) { body:has([data-dock-bottom]) #ns-toast-host { bottom: calc(132px + env(safe-area-inset-bottom)); } }
+
+/* Website UI kit layout (ui_kits/website): 12-column grid that collapses to one column when its container is narrow. */
+.kit { container-type: inline-size; background: var(--color-surface-default); color: var(--color-text-primary); }
+.kit-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter); }
+.kit-sec { padding-block: var(--section-y); }
+@container (max-width: 767px) {
+  .kit-grid { grid-template-columns: minmax(0, 1fr); row-gap: 24px; }
+  .kit-grid > * { grid-column: 1 / -1 !important; }
+}
+@container (min-width: 768px) and (max-width: 1099px) {
+  .kit-grid > [style*="span 4"] { grid-column: span 6 !important; }
+}
