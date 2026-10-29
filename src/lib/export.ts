@@ -42,19 +42,31 @@ export const mount = async (html: string, w: number): Promise<HTMLDivElement> =>
 export const pageNode = async (doc: AnyDoc, i: number) => { await prep(); const sz = R.size(doc, i); const host = await mount(R.page(doc, i), sz.w); const node = host.firstElementChild as HTMLElement; return {host, node, w: sz.w, h: sz.h || node.offsetHeight}; };
 
 /* images */
-export interface RasterOpts { scale?: number; quality?: number }
+/* ---------- device limits ----------
+   iPhone/iPad Safari cannot allocate a canvas over 16,777,216 px (larger exports come out blank), and every iOS browser is WebKit. */
+export const isIOS = () => typeof navigator !== 'undefined' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+export const isWebKit = () => typeof navigator !== 'undefined' && (isIOS() || (/AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR|SamsungBrowser|Android/.test(navigator.userAgent)));
+export const canvasLimit = () => isIOS() ? 16_777_216 : 50_000_000;
+/** Largest resolution multiplier this device can render for a w × h artboard. */
+export const maxScale = (w: number, h: number) => Math.max(0.1, Math.floor(Math.sqrt(canvasLimit() / (w * h)) * 100) / 100);
+export const safeScale = (w: number, h: number, s: number) => Math.min(s, maxScale(w, h));
+
+export interface RasterOpts { scale?: number; quality?: number; /** told the resolution actually used (after the device cap) */ onScale?: (s: number, w: number, h: number) => void }
 export const raster = async (doc: AnyDoc, i: number, type: 'png' | 'jpeg' | 'svg', o: RasterOpts = {}): Promise<Blob> => { await load('h2i'); const {host, node, w, h} = await pageNode(doc, i);
-  try { const opt = {width:w, height:h, pixelRatio:o.scale||1, fontEmbedCSS: await fontCSS(), cacheBust:false, quality:o.quality||0.92, backgroundColor: type==='jpeg' ? '#FFFFFF' : undefined, style:{margin:'0'}};
+  try { const s = type === 'svg' ? (o.scale||1) : safeScale(w, h, o.scale||1); o.onScale?.(s, w, h);
+    const opt = {width:w, height:h, pixelRatio:s, fontEmbedCSS: await fontCSS(), cacheBust:false, quality:o.quality||0.92, backgroundColor: type==='jpeg' ? '#FFFFFF' : undefined, style:{margin:'0'}};
     if (type === 'svg') { const u = await htmlToImage.toSvg(node, opt); return new Blob([decodeURIComponent(u.slice(u.indexOf(',')+1))], {type:'image/svg+xml'}); }
-    const u = type === 'jpeg' ? await htmlToImage.toJpeg(node, opt) : await htmlToImage.toPng(node, opt); return dataURLToBlob(u); }
+    const render = () => type === 'jpeg' ? htmlToImage.toJpeg(node, opt) : htmlToImage.toPng(node, opt);
+    if (isWebKit()) await render(); /* Safari: the first capture often misses images (logo, photos) — render once, keep the second */
+    const u = await render(); return dataURLToBlob(u); }
   finally { host.remove(); } };
 export const ext: Record<string, string> = {png:'png', jpeg:'jpg', svg:'svg', pdf:'pdf', pdfprint:'pdf', pptx:'pptx', docx:'docx', epub:'epub', html:'html', md:'md', txt:'txt', emailhtml:'html'};
 export const fname = (doc: AnyDoc, i: number | null | undefined, fmt: string) => { const base = slug(doc.name) + (doc.kind==='graphic' ? `-${doc.W}x${doc.H}` : ''); const pg = i!=null && doc.pages.length > 1 ? '-p' + String(i+1).padStart(2,'0') : ''; return base + pg + '.' + ext[fmt]; };
 
 /* PDF (raster, exact) */
 export const pdf = async (doc: AnyDoc, o: { pages?: number[]; scale?: number } = {}): Promise<Blob> => { await load('pdf'); let pdf: InstanceType<typeof jsPDF> | null = null;
-  for (let i = 0; i < doc.pages.length; i++) { if (o.pages && !o.pages.includes(i)) continue; const b = await raster(doc, i, 'jpeg', {scale: o.scale || (doc.kind==='graphic' ? 1 : 2), quality: 0.92}); const u = await blobToDataURL(b);
-    const im = await new Promise<HTMLImageElement>(r=>{ const m = new Image(); m.onload = () => r(m); m.src = u; }); const pw = im.width / (o.scale || (doc.kind==='graphic'?1:2)), ph = im.height / (o.scale || (doc.kind==='graphic'?1:2));
+  for (let i = 0; i < doc.pages.length; i++) { if (o.pages && !o.pages.includes(i)) continue; let used = o.scale || (doc.kind==='graphic' ? 1 : 2); const b = await raster(doc, i, 'jpeg', {scale: used, quality: 0.92, onScale: s => { used = s; }}); const u = await blobToDataURL(b);
+    const im = await new Promise<HTMLImageElement>(r=>{ const m = new Image(); m.onload = () => r(m); m.src = u; }); const pw = im.width / used, ph = im.height / used;
     if (!pdf) pdf = new jsPDF({unit:'px', format:[pw, ph], orientation: pw > ph ? 'landscape' : 'portrait', hotfixes:['px_scaling'], compress:true}); else pdf.addPage([pw, ph], pw > ph ? 'landscape' : 'portrait');
     pdf.addImage(u, 'JPEG', 0, 0, pw, ph); }
   if (!pdf) throw new Error('No pages to export.');
@@ -67,7 +79,11 @@ export const htmlDoc = async (doc: AnyDoc, o: { autoprint?: boolean } = {}) => {
 @page{size:${fm.w}px ${email?'auto':fm.h+'px'};margin:0}html,body{margin:0;background:#DCDFDF}body{padding:24px 0;display:flex;flex-direction:column;align-items:center;gap:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .pg{box-shadow:0 2px 6px rgba(11,10,8,.08),0 24px 64px rgba(11,10,8,.12)}@media print{html,body{background:none;padding:0;gap:0;display:block}.pg{box-shadow:none;break-after:page;page-break-after:always}.pg:last-child{break-after:auto}}</style></head><body>
 ${pages}${o.autoprint?'<script>document.fonts.ready.then(()=>setTimeout(()=>print(),300))<\/script>':''}</body></html>`; };
-export const print = async (doc: AnyDoc) => { const html = await htmlDoc(doc, {autoprint:false}); const f = document.createElement('iframe'); Object.assign(f.style,{position:'fixed',right:'0',bottom:'0',width:'0',height:'0',border:'0'}); document.body.appendChild(f);
+/** iOS Safari cannot print a hidden iframe: write the print-ready page into a window opened during the tap (see `printWindow`). */
+export const printWindow = () => isIOS() ? window.open('', '_blank') : null;
+export const print = async (doc: AnyDoc, win?: Window | null) => {
+  if (win) { const page = await htmlDoc(doc, {autoprint:true}); win.document.open(); win.document.write(page); win.document.close(); return true; }
+  const html = await htmlDoc(doc, {autoprint:false}); const f = document.createElement('iframe'); Object.assign(f.style,{position:'fixed',right:'0',bottom:'0',width:'0',height:'0',border:'0'}); document.body.appendChild(f);
   f.srcdoc = html; await new Promise(r => { f.onload = () => r(0); }); try { await f.contentDocument!.fonts.ready; f.contentWindow!.focus(); f.contentWindow!.print(); setTimeout(()=>f.remove(), 60000); return true; } catch { f.remove(); throw new Error('Printing is blocked here. Use “HTML (print-ready)” and print it from your browser.'); } };
 
 /* Markdown / text */
@@ -228,21 +244,36 @@ export const formatsFor = (doc: AnyDoc): [string, string][] => { if (doc.kind ==
   if (doc.format === 'email') f.push(['emailhtml','Email HTML (table-based)']);
   f.push(['html','HTML (print-ready)'],['md','Markdown'],['txt','Plain text']); return f; };
 export const isPerPage = (fmt: string): fmt is 'png' | 'jpeg' | 'svg' => ['png','jpeg','svg'].includes(fmt);
-export interface RunOpts extends RasterOpts { page?: number; progress?: (i: number, n: number) => void }
-export const run = async (doc: AnyDoc, fmt: string, o: RunOpts = {}): Promise<unknown> => { const name = (i?: number | null) => fname(doc, i, fmt);
+export interface RunOpts extends RasterOpts { page?: number; progress?: (i: number, n: number) => void; win?: Window | null }
+/** Build one export as a single file (a ZIP when a per-page format covers several pages). Null for print. */
+export const fileFor = async (doc: AnyDoc, fmt: string, o: RunOpts = {}): Promise<{ blob: Blob; name: string } | null> => { const name = (i?: number | null) => fname(doc, i, fmt);
   if (isPerPage(fmt)) { const idx = o.page != null ? [o.page] : doc.pages.map((_,i)=>i);
-    if (idx.length === 1) { const b = await raster(doc, idx[0], fmt, o); download(b, name(doc.pages.length>1?idx[0]:null)); return; }
-    await load('zip'); const zip = new JSZip(); for (const i of idx) { zip.file(name(i), await raster(doc, i, fmt, o)); if (o.progress) o.progress(i+1, idx.length); } download(await zip.generateAsync({type:'blob'}), slug(doc.name)+'-'+fmt+'.zip'); return; }
-  if (fmt === 'pdf') return download(await pdf(doc, o), name());
-  if (fmt === 'pdfprint') return print(doc);
-  if (fmt === 'pptx') return download(await pptx(doc), name());
-  if (fmt === 'docx' && doc.kind === 'doc') return download(await docx(doc), name());
-  if (fmt === 'epub' && doc.kind === 'doc') return download(await epub(doc), name());
-  if (fmt === 'html') return download(new Blob([await htmlDoc(doc)], {type:'text/html'}), name());
-  if (fmt === 'emailhtml' && doc.kind === 'doc') return download(new Blob([emailHtml(doc)], {type:'text/html'}), slug(doc.name)+'-email.html');
-  if (fmt === 'md') return download(new Blob([md(doc)], {type:'text/markdown'}), name());
-  if (fmt === 'txt') return download(new Blob([txt(doc)], {type:'text/plain'}), name());
+    if (idx.length === 1) return { blob: await raster(doc, idx[0], fmt, o), name: name(doc.pages.length>1?idx[0]:null) };
+    await load('zip'); const zip = new JSZip(); for (const i of idx) { zip.file(name(i), await raster(doc, i, fmt, o)); if (o.progress) o.progress(i+1, idx.length); } return { blob: await zip.generateAsync({type:'blob'}), name: slug(doc.name)+'-'+fmt+'.zip' }; }
+  if (fmt === 'pdf') return { blob: await pdf(doc, o), name: name() };
+  if (fmt === 'pdfprint') return null;
+  if (fmt === 'pptx') return { blob: await pptx(doc), name: name() };
+  if (fmt === 'docx' && doc.kind === 'doc') return { blob: await docx(doc), name: name() };
+  if (fmt === 'epub' && doc.kind === 'doc') return { blob: await epub(doc), name: name() };
+  if (fmt === 'html') return { blob: new Blob([await htmlDoc(doc)], {type:'text/html'}), name: name() };
+  if (fmt === 'emailhtml' && doc.kind === 'doc') return { blob: new Blob([emailHtml(doc)], {type:'text/html'}), name: slug(doc.name)+'-email.html' };
+  if (fmt === 'md') return { blob: new Blob([md(doc)], {type:'text/markdown'}), name: name() };
+  if (fmt === 'txt') return { blob: new Blob([txt(doc)], {type:'text/plain'}), name: name() };
   throw new Error('Unknown format'); };
+export const run = async (doc: AnyDoc, fmt: string, o: RunOpts = {}): Promise<unknown> => {
+  if (fmt === 'pdfprint') return print(doc, o.win);
+  const f = await fileFor(doc, fmt, o); if (f) download(f.blob, f.name); return f; };
+
+/* ---------- share sheet (iPhone, Android, Samsung): "Save to Photos", WhatsApp, etc. ---------- */
+const MIME: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', svg: 'image/svg+xml', pdf: 'application/pdf', zip: 'application/zip', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', epub: 'application/epub+zip', html: 'text/html', md: 'text/markdown', txt: 'text/plain' };
+const asFile = (blob: Blob, name: string) => new File([blob], name, { type: blob.type || MIME[name.split('.').pop() || ''] || 'application/octet-stream' });
+/** True when this browser can share files (iOS 15+ Safari, Android Chrome, Samsung Internet). */
+export const canShareFiles = (type = 'image/png') => { try { return typeof navigator !== 'undefined' && !!navigator.canShare && navigator.canShare({ files: [new File([''], 'x', { type })] }); } catch { return false; } };
+export const share = async (blob: Blob, name: string) => { const file = asFile(blob, name); if (!navigator.canShare?.({ files: [file] })) throw new Error('Sharing this file type isn’t supported here — use Download.'); await navigator.share({ files: [file], title: name }); };
+/** Export then open the share sheet. Returns false when the user dismissed the sheet. */
+export const runShare = async (doc: AnyDoc, fmt: string, o: RunOpts = {}): Promise<boolean> => {
+  const f = await fileFor(doc, fmt, o); if (!f) throw new Error('Use Download for this format.');
+  try { await share(f.blob, f.name); return true; } catch (e) { if ((e as Error).name === 'AbortError') return false; throw e; } };
 export const bulk = async (docs: AnyDoc[], fmt: string, progress?: (n: number, total: number) => void) => { await load('zip'); const zip = new JSZip(); let n = 0; const total = docs.reduce((a,d)=>a + (isPerPage(fmt) ? d.pages.length : 1), 0);
   for (const d of docs) { const folder = zip.folder(slug(d.name) + (d.kind==='graphic'?`-${d.W}x${d.H}`:''))!;
     if (isPerPage(fmt)) { for (let i = 0; i < d.pages.length; i++) { folder.file(fname(d, d.pages.length>1?i:null, fmt), await raster(d, i, fmt)); progress?.(++n, total); } }

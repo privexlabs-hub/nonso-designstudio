@@ -303,6 +303,7 @@ export function DesignSystem() {
           </div>
           <h3 className="d-h3">Website screens — interactive</h3>
           <p className="s-small" style={{ margin: '0 0 16px', maxWidth: '70ch' }}>The design system’s website kit, built entirely from the live components: Home, Services and a four-step inquiry with validation and a measurement guide. Use the header links and buttons to move between screens. Prices, turnaround times and client names are sample content — confirm before publishing.</p>
+          <p className={css.kitHint}>Scroll inside the preview to explore it; scroll outside it to move down the page.</p>
           <div className={css.kitFrame}><WebsiteKit /></div>
         </DocSection>
 

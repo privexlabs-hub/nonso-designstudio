@@ -14,9 +14,15 @@ export default defineConfig({
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] }, testIgnore: /mobile\.spec/ },
     { name: 'mobile', use: { ...devices['Pixel 7'], permissions: ['clipboard-read', 'clipboard-write'] }, testMatch: /mobile|responsive/ },
-    /* iPhone Safari: needs WebKit's system libraries (`sudo npx playwright install-deps webkit`), so it is opt-in via PW_WEBKIT=1 */
-    ...(process.env.PW_WEBKIT ? [{ name: 'iphone', use: { ...devices['iPhone 13'] }, testMatch: /mobile|responsive/ }] : []),
-    /* iPhone Safari engine; needs `npx playwright install --with-deps webkit` (system libraries), so it is opt-in: PW_WEBKIT=1 */
-    ...(process.env.PW_WEBKIT ? [{ name: 'iphone', use: { ...devices['iPhone 13'] }, testMatch: /mobile|responsive/ }] : []),
+    /* Real phone sizes and user agents on Chromium with touch — the iPhone profiles exercise the iOS code paths (canvas cap, print fallback) */
+    ...([
+      ['iphone-se', { ...devices['iPhone SE'], defaultBrowserType: 'chromium' }],
+      ['iphone-15-pro-max', { ...devices['iPhone 15 Pro Max'], defaultBrowserType: 'chromium' }],
+      ['galaxy-s24', { ...devices['Galaxy S24'], defaultBrowserType: 'chromium' }],
+      ['phone-landscape', { ...devices['iPhone 13 landscape'], defaultBrowserType: 'chromium' }],
+      ['ipad-mini', { ...devices['iPad Mini'], defaultBrowserType: 'chromium' }],
+    ] as const).map(([name, use]) => ({ name, use: { ...use, permissions: ['clipboard-read', 'clipboard-write'] }, testMatch: /mobile\.spec/ })),
+    /* iPhone Safari engine: needs WebKit's system libraries (`sudo npx playwright install-deps webkit`), so it is opt-in via PW_WEBKIT=1 */
+    ...(process.env.PW_WEBKIT ? [{ name: 'iphone-webkit', use: { ...devices['iPhone 13'] }, testMatch: /mobile|responsive/ }] : []),
   ],
 });

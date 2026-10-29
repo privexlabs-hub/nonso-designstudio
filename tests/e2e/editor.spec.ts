@@ -117,7 +117,7 @@ test('carousel pages: add, duplicate, reorder by drag and buttons, delete, count
   const g0 = (await pages.nth(0).locator('[role=button][title="Drag to reorder"]').boundingBox())!; const g3 = (await pages.nth(3).boundingBox())!;
   await page.mouse.move(g0.x + g0.width / 2, g0.y + g0.height / 2); await page.mouse.down(); await page.mouse.move(g0.x + 4, g3.y + g3.height - 4, { steps: 8 }); await page.mouse.up();
   await waitSaved(page);
-  let d = await saved(page, 'car-how-it-works');
+  const d = await saved(page, 'car-how-it-works');
   expect(d.pages.length).toBe(7);
   expect(d.pages[3].els.find((e: { id: string }) => e.id === 'title').text).toBe('From your measurements to the finished piece.');
   expect(d.pages.map((p: { els: { id: string; text: string }[] }) => p.els.find(e => e.id === 'counter')!.text)).toEqual(['01 / 07', '02 / 07', '03 / 07', '04 / 07', '05 / 07', '06 / 07', '07 / 07']);

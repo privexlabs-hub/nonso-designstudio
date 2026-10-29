@@ -12,6 +12,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  /* Android/Chrome: the on-screen keyboard resizes the layout instead of covering the editor's fields */
+  interactiveWidget: 'resizes-content',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#F3F4F2' },
     { media: '(prefers-color-scheme: dark)', color: '#0B0A08' },

@@ -167,3 +167,21 @@ button.d-tile:hover { color: var(--ui-select); }
 @container (min-width: 768px) and (max-width: 1099px) {
   .kit-grid > [style*="span 4"] { grid-column: span 6 !important; }
 }
+
+/* ---------- phones & tablets (iPhone, iPad, Samsung, Android) ---------- */
+/* Landscape notches / Dynamic Island: viewport-fit=cover lets content run under them, so pad the shell */
+.s-header, .s-main, .s-docs { padding-left: max(clamp(16px, 3vw, 40px), env(safe-area-inset-left)); padding-right: max(clamp(16px, 3vw, 40px), env(safe-area-inset-right)); }
+@media (max-width: 899px) { .s-docs { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); } }
+@media (pointer: coarse) {
+  /* iOS/iPadOS zoom the page into any field under 16px — keep every control at 16px on touch screens */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: max(16px, 1em) !important; }
+  * { -webkit-tap-highlight-color: transparent; }
+  /* larger, thumb-friendly range sliders */
+  input[type="range"]:not(.ns-ba__range) { -webkit-appearance: none; appearance: none; height: 32px; background: transparent; accent-color: var(--ui-strong); }
+  input[type="range"]:not(.ns-ba__range)::-webkit-slider-runnable-track { height: 4px; background: var(--ui-border-2); border-radius: 2px; }
+  input[type="range"]:not(.ns-ba__range)::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; margin-top: -12px; border-radius: 50%; background: var(--ui-strong); border: 3px solid var(--ui-bg); box-shadow: 0 0 0 1px var(--ui-border-2); }
+  input[type="range"]:not(.ns-ba__range)::-moz-range-track { height: 4px; background: var(--ui-border-2); border-radius: 2px; }
+  input[type="range"]:not(.ns-ba__range)::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: var(--ui-strong); border: 3px solid var(--ui-bg); }
+  input[type="range"]:not(.ns-ba__range):focus-visible { box-shadow: none; }
+  input[type="range"]:not(.ns-ba__range):focus-visible::-webkit-slider-thumb { box-shadow: var(--focus-ring); }
+}

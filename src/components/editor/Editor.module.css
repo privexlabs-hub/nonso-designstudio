@@ -1,6 +1,8 @@
 /* Editor: three panels (pages · canvas · inspector) on desktop; one panel at a time with bottom tabs under 900px. */
 .app { height: 100vh; height: 100dvh; display: flex; flex-direction: column; background: var(--ui-bg); color: var(--ui-text); font-family: var(--font-sans); overflow: hidden; }
-.left[hidden], .center[hidden], .right[hidden] { display: none; }
+.left[hidden], .right[hidden] { display: none; }
+/* the canvas stays laid out (just invisible) when another panel is shown on phones, so page overflow is still measured */
+.center[hidden] { display: flex; position: absolute; inset: 0; visibility: hidden; pointer-events: none; z-index: -1; }
 
 /* ---------- header ---------- */
 .header { display: flex; align-items: center; gap: 8px 12px; padding: 6px 12px; border-bottom: 1px solid var(--ui-border); flex-wrap: wrap; flex: none; }
@@ -27,7 +29,7 @@
 /* ---------- panels ---------- */
 .work { flex: 1; min-height: 0; display: flex; position: relative; }
 .left { width: 264px; flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--ui-border); background: var(--ui-surface); min-height: 0; }
-.center { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--ui-canvas); }
+.center { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--ui-canvas); position: relative; }
 .right { width: 336px; flex: none; display: flex; flex-direction: column; border-left: 1px solid var(--ui-border); background: var(--ui-surface); min-height: 0; }
 
 /* ---------- canvas ---------- */
@@ -152,4 +154,32 @@ textarea.input { padding: 8px; line-height: 1.5; resize: vertical; font-weight: 
 @media (max-width: 380px) {
   .grid4 { grid-template-columns: repeat(2, 1fr); }
   .tab { font-size: 11px; letter-spacing: .06em; }
+}
+
+/* ---------- phones & tablets: touch, keyboard, safe areas ---------- */
+.app { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+.canvas { -webkit-touch-callout: none; }
+.canvas img { -webkit-user-drag: none; }
+.fab { position: absolute; right: 16px; bottom: 56px; z-index: 20; min-height: 48px; padding: 0 20px; border: 0; border-radius: var(--radius-pill); background: var(--ui-strong); color: var(--ui-bg); font: 500 13px/1 var(--font-sans); letter-spacing: .14em; text-transform: uppercase; box-shadow: var(--shadow-overlay); cursor: pointer; }
+.mini { position: sticky; top: -16px; z-index: 5; margin: -16px -16px 0; padding: 12px 16px 10px; background: var(--ui-surface); border-bottom: 1px solid var(--ui-border); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.miniBox { display: block; border: 1px solid var(--ui-border); padding: 0; background: var(--ui-place); cursor: pointer; }
+@media (max-width: 899px) {
+  /* most-used tools first; the row still scrolls sideways */
+  .gUndo { order: 0; } .tExport { order: 1; } .gZoom { order: 2; } .tPreview { order: 3; } .tTheme { order: 4; }
+}
+/* phones in landscape / very short screens: give the canvas the height */
+@media (max-width: 999px) and (max-height: 500px) {
+  .header { flex-wrap: nowrap; padding-top: 4px; padding-bottom: 4px; }
+  .back img { width: 32px; height: 32px; }
+  .crumb { display: none; }
+  .docName { font-size: 16px; }
+  .tools { flex: 1 1 auto; min-width: 0; }
+  .tool { height: 36px; min-width: 36px; }
+  .status { display: none; }
+  .mobileTabs button { height: 40px; }
+  .fab { bottom: 12px; }
+  .mini { position: static; margin: -16px -16px 0; flex-direction: row; justify-content: center; } /* not pinned: it would cover the controls */
+  .miniBox { width: min(100%, calc(20vh * 1.5)) !important; }
+  .tab { height: 36px; }
+  .mini { padding-top: 8px; padding-bottom: 6px; }
 }

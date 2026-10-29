@@ -64,3 +64,5 @@
 @media (max-width: 480px) { .demo { padding: 20px; } .spaceRow > span:first-child { width: 96px !important; } }
 .kitFrame { border: 1px solid var(--ui-border); max-height: 900px; overflow: auto; overscroll-behavior: contain; }
 @media (max-width: 899px) { .kitFrame { max-height: 80vh; } }
+.kitHint { display: none; margin: 0 0 8px; font-size: 13px; color: var(--ui-text-2); }
+@media (pointer: coarse) { .kitHint { display: block; } .kitFrame { -webkit-overflow-scrolling: touch; } }

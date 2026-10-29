@@ -41,6 +41,12 @@ export function TemplateLibrary() {
     return out;
   }, [hydrated, version]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* phones/tablets that can share files get a Share button ("Save to Photos", WhatsApp…) */
+  const canShare = useMemo(() => hydrated && X.canShareFiles() && matchMedia('(pointer: coarse)').matches, [hydrated]);
+  const shareOne = async (t: CatalogItem) => {
+    const { doc } = docFor(t); const fmt = t.kind === 'graphic' ? 'png' : 'pdf'; toast('Preparing ' + t.name + '…');
+    try { if (await X.runShare(doc, fmt)) toast('Shared ' + t.name, 'success'); } catch (e) { toast('Share failed: ' + (e as Error).message, 'error'); }
+  };
   const exportOne = async (t: CatalogItem) => {
     const { doc } = docFor(t); const fmt = t.kind === 'graphic' ? 'png' : 'pdf'; toast('Preparing ' + t.name + '…');
     try { await X.run(doc, fmt); toast('Downloaded ' + t.name, 'success'); } catch (e) { toast('Export failed: ' + (e as Error).message, 'error'); }
@@ -99,7 +105,7 @@ export function TemplateLibrary() {
           <button type="button" className="s-btn s-btn--quiet s-btn--sm s-btn--plain" onClick={() => setSel(s => { const n = { ...s }; shown.forEach(t => { n[t.id] = true; }); return n; })}>Select all shown</button>
           <button type="button" className="s-btn s-btn--quiet s-btn--sm s-btn--plain" onClick={() => setSel({})}>Clear</button>
           <div className={css.bulkRight}>
-            <select className="s-select" value={bulkFmt} onChange={e => setBulkFmt(e.target.value)} aria-label="Bulk export format" style={{ minHeight: 36, width: 'auto', fontSize: 14 }}>
+            <select className="s-select" value={bulkFmt} onChange={e => setBulkFmt(e.target.value)} aria-label="Bulk export format" style={{ minHeight: 36, width: 'auto' }}>
               <option value="png">PNG (all pages)</option><option value="jpeg">JPEG (all pages)</option><option value="pdf">PDF (one per item)</option><option value="html">HTML</option><option value="md">Markdown</option><option value="txt">Plain text</option><option value="docx">Word (documents only)</option>
             </select>
             <button type="button" className="s-btn s-btn--md" style={{ height: 36 }} onClick={bulk} disabled={!nSel || !!busy}>{busy ? 'Exporting ' + busy : 'Export ZIP'}</button>
@@ -130,6 +136,7 @@ export function TemplateLibrary() {
                     <div className={css.actions}>
                       <a href={editorHref(t.id)} className="s-btn s-btn--sm">Edit</a>
                       <button type="button" className="s-btn s-btn--quiet s-btn--sm s-btn--plain" onClick={() => exportOne(t)}>{t.kind === 'graphic' ? (doc && doc.pages.length > 1 ? 'PNG (ZIP)' : 'PNG') : 'PDF'}</button>
+                      {canShare && <button type="button" className="s-btn s-btn--quiet s-btn--sm s-btn--plain" aria-label={'Share ' + t.name} onClick={() => shareOne(t)}>Share</button>}
                       {card?.edited && <button type="button" className="s-btn s-btn--quiet s-btn--sm s-btn--plain" style={{ color: 'var(--ui-text-2)', borderColor: 'var(--ui-border)' }} onClick={() => reset(t)}>Reset</button>}
                     </div>
                   </article>

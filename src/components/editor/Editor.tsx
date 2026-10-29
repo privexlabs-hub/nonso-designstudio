@@ -42,6 +42,7 @@ export class Editor extends Component<object, State> {
   _key: string | null = null; _sv?: ReturnType<typeof setTimeout>; _ro?: ResizeObserver;
   editing: { pi: number; id: string } | null = null; drag: Drag | null = null; imgTarget = 'item';
   lastTap = { t: 0, id: '' }; pinch: { d: number; z: number } | null = null;
+  canShare = false;
 
   /* ---------- lifecycle ---------- */
   componentDidMount() {
@@ -58,6 +59,7 @@ export class Editor extends Component<object, State> {
       this._ro = new ResizeObserver(() => { const w = c.clientWidth, h = c.clientHeight; if (Math.abs(w - this.state.cw) > 2 || Math.abs(h - this.state.ch) > 2) this.setState({ cw: w, ch: h }, () => { this.paint(); this.center(this.state.sel.page, 'auto'); }); });
       this._ro.observe(c);
     }
+    this.canShare = X.canShareFiles();
     this.setState({ theme: getTheme() });
     this.init();
   }
@@ -181,7 +183,8 @@ export class Editor extends Component<object, State> {
     else { const b = target.closest<HTMLElement>('[data-block]'); if (!b) return; const blk = (d.pages[pi] as DPage).blocks.find(x => x.id === b.dataset.block); if (!blk || !INLINE_BLOCKS.includes(blk.t)) { toast('Edit this block’s content in the inspector.'); return; } node = b.querySelector<HTMLElement>('p,h1,h2,h3,h4'); id = blk.id; }
     if (!node) return; this.cancelDrag(); this.pushHist(); this.editing = { pi, id };
     try { node.contentEditable = 'plaintext-only'; } catch { node.contentEditable = 'true'; } if (node.contentEditable !== 'plaintext-only') node.contentEditable = 'true';
-    node.style.outline = 'none'; node.style.cursor = 'text'; node.style.touchAction = 'auto'; node.focus();
+    node.style.outline = 'none'; node.style.cursor = 'text'; node.style.touchAction = 'auto'; node.style.webkitUserSelect = 'text'; node.style.userSelect = 'text'; node.focus();
+    setTimeout(() => node!.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300);
     const rg = document.createRange(); rg.selectNodeContents(node); const s = getSelection(); s?.removeAllRanges(); s?.addRange(rg);
     const n = node;
     const done = () => { n.removeEventListener('blur', done); const text = n.innerText.replace(/\n$/, ''); this.editing = null; this.patchItem({ text }, pi, id); this._key = null; };
@@ -260,9 +263,15 @@ export class Editor extends Component<object, State> {
       else this.patchItem({ src });
       toast('Image placed', 'success'); } catch (er) { toast((er as Error).message || 'Could not read that image.', 'error'); } };
 
-  async exportNow(fmt: string, opt: { page?: number } = {}) { const d = this.state.doc!; this.setState({ busy: 'Preparing export…', exportMsg: null });
-    try { const x = X; await x.run(d, fmt, { scale: this.state.scale, quality: this.state.quality, progress: (n, t) => this.setState({ busy: `Rendering ${n} of ${t}…` }), ...opt });
-      const msg = fmt === 'pdfprint' ? 'Print dialog opened — choose “Save as PDF”.' : 'Downloaded ' + x.fname(d, opt.page != null && d.pages.length > 1 ? opt.page : null, fmt).replace(/\.\w+$/, '') + ' (' + fmt.toUpperCase() + ')';
+  /** Export with Download (default) or the phone's share sheet ("Save to Photos", WhatsApp…). */
+  async exportNow(fmt: string, opt: { page?: number; win?: Window | null } = {}, mode: 'download' | 'share' = 'download') { const d = this.state.doc!; this.setState({ busy: 'Preparing export…', exportMsg: null });
+    let px = '';
+    try { const x = X; const o = { scale: this.state.scale, quality: this.state.quality, progress: (n: number, t: number) => this.setState({ busy: `Rendering ${n} of ${t}…` }),
+        onScale: (s: number, w: number, h: number) => { if (x.isPerPage(fmt)) px = ` · ${Math.round(w * s)}×${Math.round(h * s)} px${s < this.state.scale ? ` (limited to ${s}× on this device)` : ''}`; }, ...opt };
+      if (mode === 'share') { if (!await x.runShare(d, fmt, o)) { this.setState({ busy: null }); return; } }
+      else await x.run(d, fmt, o);
+      const base = x.fname(d, opt.page != null && d.pages.length > 1 ? opt.page : null, fmt).replace(/\.\w+$/, '') + ' (' + fmt.toUpperCase() + px + ')';
+      const msg = fmt === 'pdfprint' ? (opt.win ? 'Print-ready page opened — use Share → Print, then pinch out to save as PDF.' : 'Print dialog opened — choose “Save as PDF”.') : (mode === 'share' ? 'Shared ' : 'Downloaded ') + base;
       this.setState({ busy: null, exportMsg: msg, exportOk: true }); toast(msg, 'success'); }
     catch (er) { console.error(er); const m = 'Export failed: ' + ((er as Error)?.message || 'unknown error'); this.setState({ busy: null, exportMsg: m, exportOk: false }); toast(m, 'error'); } }
   async flowOverflow() { const d = this.state.doc as DocDoc, i = this.state.sel.page; const host = await X.mount(R.docPage(d, i), R.fmt(d).w);
@@ -293,18 +302,18 @@ export class Editor extends Component<object, State> {
           <div className={css.title}><span className={css.crumb}>{crumb}</span><span className={css.docName}>{ready ? d!.name : S.err ? 'Not found' : 'Loading…'}</span></div>
           <span role="status" className={css.saved}>{ready ? (S.saved ? 'Saved in this browser' : 'Saving…') : ''}</span>
           <div className={css.tools}>
-            <div className={css.group}>
+            <div className={`${css.group} ${css.gUndo}`}>
               <button type="button" className={css.tool} onClick={this.undo} disabled={!this.hist.length} title="Undo (Ctrl/Cmd+Z)">Undo</button>
               <button type="button" className={css.tool} onClick={this.redo} disabled={!this.fut.length} title="Redo (Ctrl/Cmd+Shift+Z)">Redo</button>
             </div>
-            <div className={css.group}>
+            <div className={`${css.group} ${css.gZoom}`}>
               <button type="button" className={`${css.tool} ${css.sq}`} aria-label="Zoom out" onClick={() => this.setState({ zoom: Math.max(0.04, +(z / 1.25).toFixed(3)) }, () => this.center(S.sel.page, 'auto'))}>−</button>
               <button type="button" className={`${css.tool} ${css.zoom}`} title="Fit to workspace" onClick={() => this.setState({ zoom: S.zoom === 'fit' ? 1 : 'fit' }, () => this.center(S.sel.page, 'auto'))}>{ready ? (S.zoom === 'fit' ? 'Fit ' : '') + Math.round(z * 100) + '%' : '—'}</button>
               <button type="button" className={`${css.tool} ${css.sq}`} aria-label="Zoom in" onClick={() => this.setState({ zoom: Math.min(4, +(z * 1.25).toFixed(3)) }, () => this.center(S.sel.page, 'auto'))}>+</button>
             </div>
-            <button type="button" className={`${css.tool} ${css.caps}`} aria-pressed={S.preview} onClick={() => this.setState({ preview: !S.preview, sel: { page: S.sel.page, id: null } })}>Preview</button>
-            <button type="button" className={`${css.tool} ${css.caps}`} aria-label="Switch colour theme" onClick={toggleTheme}>{S.theme === 'dark' ? 'Light' : 'Dark'}</button>
-            <button type="button" className={`${css.tool} ${css.primary}`} onClick={() => this.setState({ tab: 'export', mp: narrow ? 'inspect' : S.mp })} disabled={!ready}>Export</button>
+            <button type="button" className={`${css.tool} ${css.caps} ${css.tPreview}`} aria-pressed={S.preview} onClick={() => this.setState({ preview: !S.preview, sel: { page: S.sel.page, id: null } })}>Preview</button>
+            <button type="button" className={`${css.tool} ${css.caps} ${css.tTheme}`} aria-label="Switch colour theme" onClick={toggleTheme}>{S.theme === 'dark' ? 'Light' : 'Dark'}</button>
+            <button type="button" className={`${css.tool} ${css.primary} ${css.tExport}`} onClick={() => this.setState({ tab: 'export', mp: narrow ? 'inspect' : S.mp })} disabled={!ready}>Export</button>
           </div>
         </header>
 
@@ -314,6 +323,9 @@ export class Editor extends Component<object, State> {
           <aside aria-label="Pages" className={css.left} hidden={!show('pages')}>{ready && this.renderPages()}</aside>
           <main aria-label="Canvas" className={css.center} hidden={!show('canvas')}>
             <div ref={this.canvasRef} tabIndex={-1} className={css.canvas} data-preview={S.preview || undefined} data-kind={d?.kind} />
+            {narrow && ready && S.sel.id && !S.preview && (
+              <button type="button" className={css.fab} onClick={() => this.setState({ tab: 'edit' }, () => this.setPanel('inspect'))}>Edit selected</button>
+            )}
             <div className={css.status}>
               <span className={css.statusLeft}>{ready ? (graphic ? (narrow ? 'Drag to move · handle to resize · double-tap text · pinch to zoom' : 'Drag to move · handle to resize · double-click text to edit · arrows nudge') : (narrow ? 'Tap a block to select · double-tap text to edit' : 'Click a block to select · double-click text to edit · PageUp/PageDown between pages')) : ''}</span>
               <span className={css.statusRight}>{ready ? 'Page ' + (S.sel.page + 1) + ' of ' + d!.pages.length + (S.overflow.length ? ' · ' + S.overflow.length + ' page(s) overflow' : '') : ''}</span>
@@ -326,6 +338,7 @@ export class Editor extends Component<object, State> {
               ))}
             </div>
             <div className={css.inspector} role="tabpanel">
+              {narrow && ready && this.renderMini()}
               {!ready ? <p className={css.hint}>{S.err ? '' : 'Loading…'}</p>
                 : S.tab === 'edit' ? this.renderEdit() : S.tab === 'page' ? this.renderPage() : S.tab === 'doc' ? this.renderDocTab() : this.renderExport()}
             </div>
@@ -340,6 +353,19 @@ export class Editor extends Component<object, State> {
           </nav>
         )}
         <input ref={this.fileRef} type="file" accept="image/*" onChange={this.onFile} hidden />
+      </div>
+    );
+  }
+
+  /** Phones: a live preview of the current page pinned above the inspector, so edits stay visible while the canvas is hidden. */
+  renderMini() {
+    const d = this.state.doc!; const i = Math.min(this.state.sel.page, d.pages.length - 1); const s = R.size(d, i); const h = s.h || Math.round(s.w * 1.4);
+    return (
+      <div className={css.mini}>
+        <button type="button" className={css.miniBox} style={{ width: `min(100%, calc(22vh * ${(s.w / h).toFixed(4)}))` }} onClick={() => this.setPanel('canvas')} aria-label={'Live preview of page ' + (i + 1) + ' — open the canvas'}>
+          <FitPreview w={s.w} h={h} html={R.page(d, i)} />
+        </button>
+        <span className={css.muted}>Live preview · page {i + 1} of {d.pages.length}</span>
       </div>
     );
   }
@@ -377,6 +403,7 @@ export class Editor extends Component<object, State> {
                     <button type="button" aria-label="Move page down" title="Move down" onClick={() => this.movePage(i, i + 1)} disabled={i === d.pages.length - 1}><Icon name="chevron-down" size={16} /></button>
                     <button type="button" aria-label="Duplicate page" title="Duplicate" onClick={() => this.dupPage(i)}><Icon name="copy" size={16} /></button>
                     <button type="button" aria-label="Download this page as PNG" title="Download PNG" onClick={() => this.exportNow('png', { page: i })}><Icon name="download" size={16} /></button>
+                    {this.canShare && this.state.narrow && <button type="button" aria-label="Share this page as PNG" title="Share / Save to Photos" onClick={() => this.exportNow('png', { page: i }, 'share')}><Icon name="share-2" size={16} /></button>}
                     <button type="button" aria-label="Delete page" title="Delete" onClick={() => this.delPage(i)}><Icon name="trash-2" size={16} /></button>
                   </div>
                 </div>
@@ -447,8 +474,8 @@ export class Editor extends Component<object, State> {
             {this.field('Font', <select className={css.input} value={it.ff || 'sans'} onFocus={this.pushHist} onChange={e => this.patchItem({ ff: e.target.value })}><option value="display">Cormorant Garamond</option><option value="sans">Jost</option></select>)}
             {this.field('Weight', <select className={css.input} value={String(it.fw || 400)} onFocus={this.pushHist} onChange={e => this.patchItem({ fw: +e.target.value })}><option value="300">300 Light</option><option value="400">400 Regular</option><option value="500">500 Medium</option><option value="600">600 Semibold</option></select>)}
             {this.field('Size (px)', <input className={css.input} type="number" min={6} max={600} value={it.fs ?? 16} onFocus={this.pushHist} onChange={this.num('fs', n => Math.max(1, n))} />)}
-            {this.field('Line height', <input className={css.input} type="number" min={0.6} max={3} step={0.05} value={it.lh ?? 1.3} onFocus={this.pushHist} onChange={this.num('lh')} />)}
-            {this.field('Letter spacing (em)', <input className={css.input} type="number" min={-0.1} max={1} step={0.01} value={it.ls ?? 0} onFocus={this.pushHist} onChange={this.num('ls')} />)}
+            {this.field('Line height', <input className={css.input} type="number" inputMode="decimal" min={0.6} max={3} step={0.05} value={it.lh ?? 1.3} onFocus={this.pushHist} onChange={this.num('lh')} />)}
+            {this.field('Letter spacing (em)', <input className={css.input} type="number" inputMode="decimal" min={-0.1} max={1} step={0.01} value={it.ls ?? 0} onFocus={this.pushHist} onChange={this.num('ls')} />)}
             {this.field('Padding (px)', <input className={css.input} type="number" min={0} max={200} value={it.pad || 0} onFocus={this.pushHist} onChange={this.num('pad')} />)}
           </div>
           <div className={css.wrap}>
@@ -638,11 +665,15 @@ export class Editor extends Component<object, State> {
         {this.field('Format', <select className={css.input} value={S.fmt} onChange={e => this.setState({ fmt: e.target.value, exportMsg: null })}>{fo.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>)}
         {X.isPerPage(S.fmt) && <>
           {this.toggles<'current' | 'all'>(S.scope, [['Current page', 'current'], ['All pages' + (d.pages.length > 1 ? ' (ZIP)' : ''), 'all']], v => this.setState({ scope: v }), 'Pages')}
-          {this.toggles<string>(String(S.scale), ([1, 2, 3] as const).map(k => [k + '×' + (graphic ? ' · ' + d.W * k + '×' + d.H * k : ''), String(k)] as [string, string]), v => this.setState({ scale: +v }), 'Resolution')}
+          {(() => { const sz = R.size(d, S.sel.page); const cap = sz.h ? X.maxScale(sz.w, sz.h) : 3; return <>
+            {this.toggles<string>(String(S.scale), ([1, 2, 3] as const).map(k => [k + '×' + (graphic ? ' · ' + d.W * k + '×' + d.H * k : '') + (k > cap ? ` (max ${cap}× here)` : ''), String(k)] as [string, string]), v => this.setState({ scale: +v }), 'Resolution')}
+            {S.scale > cap && <p className={css.help}>This device can render up to {cap}× for this size, so the export will be limited to {cap}×.</p>}
+          </>; })()}
         </>}
         {S.fmt === 'jpeg' && this.field('JPEG quality ' + Math.round(S.quality * 100) + '%', <input type="range" min={0.5} max={1} step={0.01} value={S.quality} onChange={e => this.setState({ quality: +e.target.value })} />)}
         <p className={css.hint} style={{ fontSize: 13 }}>{EXPORT_NOTES[S.fmt] || ''}</p>
-        <button type="button" className={`${css.btn} ${css.btnPrimary} ${css.big}`} disabled={!!S.busy} onClick={() => this.exportNow(S.fmt, X.isPerPage(S.fmt) && S.scope === 'current' ? { page: S.sel.page } : {})}>{S.busy || 'Export ' + ((fo.find(f => f[0] === S.fmt) || ['', ''])[1])}</button>
+        <button type="button" className={`${css.btn} ${css.btnPrimary} ${css.big}`} disabled={!!S.busy} onClick={() => this.exportNow(S.fmt, { ...(X.isPerPage(S.fmt) && S.scope === 'current' ? { page: S.sel.page } : {}), win: S.fmt === 'pdfprint' ? X.printWindow() : null })}>{S.busy || 'Export ' + ((fo.find(f => f[0] === S.fmt) || ['', ''])[1])}</button>
+        {this.canShare && S.fmt !== 'pdfprint' && <button type="button" className={`${css.btn} ${css.big}`} disabled={!!S.busy} onClick={() => this.exportNow(S.fmt, X.isPerPage(S.fmt) && S.scope === 'current' ? { page: S.sel.page } : {}, 'share')}>{['png', 'jpeg'].includes(S.fmt) ? 'Share / Save to Photos' : 'Share'}</button>}
         {S.exportMsg && <div className={css.msg} data-ok={S.exportOk}>{S.exportMsg}</div>}
         <div className={css.stack} style={{ borderTop: '1px solid var(--ui-border)', paddingTop: 12 }}>
           <button type="button" className={css.btn} onClick={() => copy(X.md(d), 'all text as Markdown')}>Copy all text (Markdown)</button>
